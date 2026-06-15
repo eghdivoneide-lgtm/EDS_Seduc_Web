@@ -187,6 +187,9 @@
         }
         .user-message { background: linear-gradient(135deg, #14b493, #0d7f68); color: #effffb; align-self: flex-end; border: 1px solid rgba(22,199,154,0.38); box-shadow: 0 6px 16px rgba(8, 54, 48, 0.28); border-bottom-right-radius: 7px; }
         .bot-message { background: #173841; color: #e8fbf6; align-self: flex-start; box-shadow: 0 8px 18px rgba(0,0,0,0.22); border: 1px solid rgba(126, 190, 176, 0.28); border-bottom-left-radius: 7px; }
+        .bot-wrapper { display: flex; align-items: flex-start; gap: 10px; align-self: flex-start; max-width: 90%; }
+        .bot-wrapper .message.bot-message { align-self: auto; max-width: 100%; }
+        .avatar-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid rgba(209,166,79,0.55); box-shadow: 0 2px 10px rgba(0,0,0,0.35); margin-top: 4px; }
         #input-container { padding: 14px 16px 18px; background-color: #0d1c20; border-top: 1px solid rgba(22,199,154,0.25); display: flex; flex-direction: column; gap: 10px; }
         .action-toolbar { display: flex; gap: 6px; flex-wrap: wrap; }
         .composer-row { display: flex; gap: 8px; align-items: center; }
@@ -564,7 +567,7 @@
             <div class="header-title">
                 <img class="header-logo" src="icons/eds-symbols/eds-brand-app-icon.svg" alt="EDS">
                 <div class="header-title-text">
-                    <strong>Assistente Pedagogico SEDUC-PE</strong>
+                    <strong>Professor Eg — SEDUC-PE</strong>
                     <span>Planejamento, BNCC e inclusao</span>
                 </div>
             </div>
@@ -596,11 +599,14 @@
                     <button class="tool-btn" onclick="saveStudentProfile()">Salvar perfil</button>
                 </div>
                 <div id="chat-container">
-                    <div class="message bot-message">
-                        👋 Ola! Eu sou o <b>Assistente Pedagogico SEDUC-PE</b>, desenvolvido pela EDS Solucoes Inteligentes.<br>
-                        Posso apoiar professores e coordenadores com planejamento pedagogico, BNCC, inclusao, avaliacoes e sequencias didaticas.<br>
-                        <b>Antes de comecarmos, me diga como voce quer ser chamado(a), sua etapa de ensino e sua principal necessidade pedagogica.</b><br>
-                        Assim eu adapto as orientacoes ao seu contexto profissional.
+                    <div class="bot-wrapper">
+                        <img class="avatar-img" src="icons/Avatar.jpg" alt="Professor Eg">
+                        <div class="message bot-message">
+                            👋 Ola! Eu sou o <b>Professor Eg</b>, seu assistente pedagogico SEDUC-PE da EDS Solucoes Inteligentes.<br>
+                            Estou aqui para apoiar voce com planejamento pedagogico, BNCC, inclusao, avaliacoes e sequencias didaticas.<br>
+                            <b>Antes de comecarmos, me diga como voce quer ser chamado(a), sua etapa de ensino e sua principal necessidade pedagogica.</b><br>
+                            Assim eu adapto minhas orientacoes ao seu contexto profissional.
+                        </div>
                     </div>
                 </div>
                 <div id="input-container">
@@ -707,8 +713,9 @@
         const DEFAULT_MODEL_NAME = 'gemini-2.5-flash';
         const MODEL_STORAGE_KEY = 'seduc_monitor_model_name';
         const SYSTEM_PROMPT_BASE = [
-            'Voce e o Assistente Pedagogico SEDUC-PE, desenvolvido pela EDS Solucoes Inteligentes em parceria com a Secretaria de Educacao de Pernambuco.',
-            'Seu foco principal e apoiar professores e coordenadores pedagogicos com orientacoes baseadas na BNCC, nas diretrizes curriculares de Pernambuco e nas melhores praticas de ensino.',
+            'Voce e o Professor Eg, assistente pedagogico criado pela EDS Solucoes Inteligentes em parceria com a Secretaria de Educacao de Pernambuco (SEDUC-PE).',
+            'Fale sempre em primeira pessoa, como Professor Eg — um educador experiente, acolhedor e fundamentado em evidencias pedagogicas. Use expressoes como "Vou te ajudar com isso", "Na minha experiencia", "Recomendo que...".',
+            'Seu foco principal e apoiar professores e coordenadores com orientacoes baseadas na BNCC, nas diretrizes curriculares de Pernambuco e nas melhores praticas de ensino.',
             'Ajude na elaboracao de planos de aula, sequencias didaticas, avaliacoes, estrategias de inclusao e intervencoes pedagogicas, de forma objetiva e aplicavel.',
             '',
             'IMPORTANTE - Formatacao de respostas:',
@@ -1014,9 +1021,11 @@
             localStorage.removeItem(CHAT_HISTORY_KEY);
             const chatContainer = document.getElementById('chat-container');
             chatContainer.innerHTML = `
-                <div class="message bot-message">
-                    👋 Ola! Historico limpo com sucesso.<br>
-                    Vamos continuar: qual demanda pedagogica voce quer resolver agora?
+                <div class="bot-wrapper">
+                    <img class="avatar-img" src="icons/Avatar.jpg" alt="Professor Eg">
+                    <div class="message bot-message">
+                        👋 Historico limpo! Pode comecar uma nova conversa quando quiser.
+                    </div>
                 </div>
             `;
             showToast('Historico limpo.');
@@ -1562,7 +1571,20 @@
                 messageDiv.classList.add('message-enter');
             }
             messageDiv.innerHTML = renderMessageHtml(text, className);
-            chatContainer.appendChild(messageDiv);
+
+            if (className === 'bot-message') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'bot-wrapper';
+                const avatar = document.createElement('img');
+                avatar.className = 'avatar-img';
+                avatar.src = 'icons/Avatar.jpg';
+                avatar.alt = 'Professor Eg';
+                wrapper.appendChild(avatar);
+                wrapper.appendChild(messageDiv);
+                chatContainer.appendChild(wrapper);
+            } else {
+                chatContainer.appendChild(messageDiv);
+            }
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
             if (persist) {
