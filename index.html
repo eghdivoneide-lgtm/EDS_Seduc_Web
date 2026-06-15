@@ -187,9 +187,13 @@
         }
         .user-message { background: linear-gradient(135deg, #14b493, #0d7f68); color: #effffb; align-self: flex-end; border: 1px solid rgba(22,199,154,0.38); box-shadow: 0 6px 16px rgba(8, 54, 48, 0.28); border-bottom-right-radius: 7px; }
         .bot-message { background: #173841; color: #e8fbf6; align-self: flex-start; box-shadow: 0 8px 18px rgba(0,0,0,0.22); border: 1px solid rgba(126, 190, 176, 0.28); border-bottom-left-radius: 7px; }
-        .bot-wrapper { display: flex; align-items: flex-start; gap: 10px; align-self: flex-start; max-width: 90%; }
-        .bot-wrapper .message.bot-message { align-self: auto; max-width: 100%; }
-        .avatar-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid rgba(209,166,79,0.55); box-shadow: 0 2px 10px rgba(0,0,0,0.35); margin-top: 4px; }
+        .bot-wrapper { display: flex; align-items: flex-start; gap: 14px; align-self: flex-start; max-width: 92%; }
+        .avatar-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; }
+        .avatar-img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid rgba(209,166,79,0.7); box-shadow: 0 4px 18px rgba(0,0,0,0.5), 0 0 0 4px rgba(209,166,79,0.13); display: block; }
+        .avatar-name { font-family: 'DM Mono',Consolas,monospace; font-size: 9px; color: #f1cc75; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; text-align: center; }
+        .bot-wrapper .message.bot-message { align-self: auto; max-width: 100%; position: relative; }
+        .bot-wrapper .message.bot-message::before { content: ''; position: absolute; left: -9px; top: 18px; border: 9px solid transparent; border-right: 9px solid #18375a; border-left: 0; }
+        @media (max-width: 600px) { .avatar-img { width: 52px; height: 52px; } .bot-wrapper { gap: 10px; } }
         #input-container { padding: 14px 16px 18px; background-color: #0d1c20; border-top: 1px solid rgba(22,199,154,0.25); display: flex; flex-direction: column; gap: 10px; }
         .action-toolbar { display: flex; gap: 6px; flex-wrap: wrap; }
         .composer-row { display: flex; gap: 8px; align-items: center; }
@@ -600,7 +604,10 @@
                 </div>
                 <div id="chat-container">
                     <div class="bot-wrapper">
-                        <img class="avatar-img" src="icons/Avatar.jpg" alt="Professor Eg">
+                        <div class="avatar-col">
+                            <img class="avatar-img" src="icons/Avatar.jpg" alt="Professor Eg">
+                            <span class="avatar-name">Prof. Eg</span>
+                        </div>
                         <div class="message bot-message">
                             👋 Ola! Eu sou o <b>Professor Eg</b>, seu assistente pedagogico SEDUC-PE da EDS Solucoes Inteligentes.<br>
                             Estou aqui para apoiar voce com planejamento pedagogico, BNCC, inclusao, avaliacoes e sequencias didaticas.<br>
@@ -1022,7 +1029,10 @@
             const chatContainer = document.getElementById('chat-container');
             chatContainer.innerHTML = `
                 <div class="bot-wrapper">
-                    <img class="avatar-img" src="icons/Avatar.jpg" alt="Professor Eg">
+                    <div class="avatar-col">
+                        <img class="avatar-img" src="icons/Avatar.jpg" alt="Professor Eg">
+                        <span class="avatar-name">Prof. Eg</span>
+                    </div>
                     <div class="message bot-message">
                         👋 Historico limpo! Pode comecar uma nova conversa quando quiser.
                     </div>
@@ -1575,11 +1585,18 @@
             if (className === 'bot-message') {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'bot-wrapper';
+                const col = document.createElement('div');
+                col.className = 'avatar-col';
                 const avatar = document.createElement('img');
                 avatar.className = 'avatar-img';
                 avatar.src = 'icons/Avatar.jpg';
                 avatar.alt = 'Professor Eg';
-                wrapper.appendChild(avatar);
+                const name = document.createElement('span');
+                name.className = 'avatar-name';
+                name.textContent = 'Prof. Eg';
+                col.appendChild(avatar);
+                col.appendChild(name);
+                wrapper.appendChild(col);
                 wrapper.appendChild(messageDiv);
                 chatContainer.appendChild(wrapper);
             } else {
