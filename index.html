@@ -581,7 +581,7 @@
             <div class="header-title">
                 <img class="header-logo" src="icons/eds-symbols/eds-brand-app-icon.svg" alt="EDS">
                 <div class="header-title-text">
-                    <strong>Professor Eg — SEDUC-PE</strong>
+                    <strong id="header-teacher-name">Professor Eg — SEDUC-PE</strong>
                     <span>Planejamento, BNCC e inclusao</span>
                 </div>
             </div>
@@ -639,6 +639,7 @@
                         <button class="tool-btn" title="Arquivo" onclick="document.getElementById('file-input').click()">📎</button>
                         <button class="tool-btn" title="Exportar como HTML" onclick="exportAsHtml()">📄</button>
                         <button class="tool-btn" title="Exportar como TXT" onclick="exportAsText()">📝</button>
+                        <button class="tool-btn" title="Exportar como DOCX (Word)" onclick="exportAsDocx()">📋</button>
                         <button class="danger-btn" title="Limpar anexo" onclick="clearSelectedFile()">🧹</button>
                         <button class="danger-btn" title="Limpar conversa" onclick="clearChatHistory()">🗑</button>
                     </div>
@@ -669,8 +670,26 @@
                     </div>
                 </div>
                 <div class="quick-card">
+                    <h4>Avaliacao e feedback</h4>
+                    <div class="quick-grid">
+                        <button type="button" class="quick-action" onclick="quickFillPrompt('Crie uma rubrica de avaliação qualitativa com descritores de desempenho para a atividade ou componente curricular que vou informar.')">Rubrica de avaliação</button>
+                        <button type="button" class="quick-action" onclick="quickFillPrompt('Faça a correção comentada desta redação, apontando pontos fortes, aspectos a melhorar e sugestões de reescrita fundamentadas na BNCC.')">Correção de redação</button>
+                        <button type="button" class="quick-action" onclick="quickFillPrompt('Analise o desempenho desta turma e sugira estratégias de intervenção pedagógica diferenciadas para os diferentes níveis de aprendizagem identificados.')">Análise de desempenho</button>
+                        <button type="button" class="quick-action" onclick="quickFillPrompt('Monte um plano de recuperação personalizado para estudante com dificuldade específica, com atividades graduadas, cronograma e critérios de acompanhamento.')">Plano de recuperação</button>
+                    </div>
+                </div>
+                <div class="quick-card">
+                    <h4>Comunicacao e gestao</h4>
+                    <div class="quick-grid">
+                        <button type="button" class="quick-action" onclick="quickFillPrompt('Crie um roteiro estruturado para reunião de pais e responsáveis, com pauta, pontos de discussão pedagógica e orientações de apoio em casa.')">Reunião de pais</button>
+                        <button type="button" class="quick-action" onclick="quickFillPrompt('Elabore um relatório de desenvolvimento individual para Educação Infantil, com observações sobre desenvolvimento motor, cognitivo, social e emocional.')">Relatório de desenvolvimento (EI)</button>
+                        <button type="button" class="quick-action" onclick="quickFillPrompt('Gere uma ata de conselho de classe com estrutura formal, registro de diagnóstico coletivo, decisões tomadas e encaminhamentos pedagógicos.')">Ata de conselho de classe</button>
+                        <button type="button" class="quick-action" onclick="quickFillPrompt('Redija um comunicado claro e acolhedor para responsáveis sobre a situação de aprendizagem do estudante, com orientações de apoio em casa.')">Comunicado para responsáveis</button>
+                    </div>
+                </div>
+                <div class="quick-card">
                     <h4>Padrao pedagogico</h4>
-                    <p class="muted">Use este painel para acelerar sua rotina pedagogica. Ao clicar, o prompt vai para o campo principal no painel Assistente. Depois, basta ajustar e enviar.</p>
+                    <p class="muted">Clique em qualquer atalho para preencher o campo do assistente. Ajuste o contexto e envie. Combine com os modos Direto, Balanceado ou Expandido para controlar a profundidade da resposta.</p>
                 </div>
             </section>
             <section id="panel-settings" class="app-panel settings-panel" aria-label="Painel de configuracoes">
@@ -694,6 +713,7 @@
                         <button type="button" onclick="switchPanel('chat'); editProfileFromMenu();">Editar perfil</button>
                         <button type="button" onclick="switchPanel('chat'); exportAsHtml();">Exportar HTML</button>
                         <button type="button" onclick="switchPanel('chat'); exportAsText();">Exportar TXT</button>
+                        <button type="button" onclick="switchPanel('chat'); exportAsDocx();">Exportar DOCX</button>
                         <button type="button" onclick="switchPanel('chat'); clearChatHistory();">Limpar conversa</button>
                     </div>
                 </div>
@@ -705,6 +725,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script>
     <script>
         if (window.pdfjsLib) {
             window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -714,7 +736,7 @@
         function login() {
             const key = document.getElementById('api-key-input').value.trim();
             if (!key) {
-                alert('Por favor, informe sua chave Gemini!');
+                showToast('Por favor, informe sua chave Gemini.');
                 return;
             }
             localStorage.setItem('seduc_gemini_api_key', key);
@@ -830,15 +852,18 @@
         function updateProfileSummary() {
             const summary = document.getElementById('profile-summary');
             const trigger = document.getElementById('profile-trigger');
+            const headerName = document.getElementById('header-teacher-name');
             if (!studentProfile.name || !studentProfile.age || !studentProfile.grade) {
                 summary.classList.remove('visible');
                 summary.innerHTML = '';
                 if (trigger) trigger.textContent = '👤';
+                if (headerName) headerName.textContent = 'Professor Eg — SEDUC-PE';
                 return;
             }
 
             const initial = studentProfile.name.charAt(0).toUpperCase();
             if (trigger) trigger.textContent = initial;
+            if (headerName) headerName.textContent = `${studentProfile.name} — SEDUC-PE`;
             summary.innerHTML = `<b>${escapeHtml(studentProfile.name)}</b> • ${escapeHtml(studentProfile.age)} • ${escapeHtml(studentProfile.grade)}`;
             summary.classList.add('visible');
         }
@@ -875,8 +900,7 @@
         function switchKeyFromMenu() {
             closeProfileMenu();
             clearSession(false);
-            alert('Chave removida. Informe a nova chave para continuar.');
-            showToast('Chave removida.');
+            showToast('Chave removida. Informe a nova chave para continuar.');
         }
 
         function logoutFromMenu() {
@@ -894,7 +918,7 @@
             toggleProfileBox(true);
             switchPanel('chat');
             if (showMessage) {
-                alert(`Sua sessao expirou apos ${SESSION_TIMEOUT_MINUTES} minutos de inatividade. Faca login novamente.`);
+                setTimeout(() => showToast(`Sessão expirada após ${SESSION_TIMEOUT_MINUTES} min. Faça login novamente.`), 150);
             }
         }
 
@@ -1077,7 +1101,7 @@
         function exportAsHtml() {
             markSessionActivity();
             const items = getHistory();
-            if (!items.length) { alert('Não há mensagens para exportar ainda.'); return; }
+            if (!items.length) { showToast('Nenhuma mensagem para exportar ainda.'); return; }
 
             const dateTag = new Date().toISOString().slice(0, 10);
             const dateFormatted = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -1156,7 +1180,7 @@
         function exportAsText() {
             markSessionActivity();
             const items = getHistory();
-            if (!items.length) { alert('Não há mensagens para exportar ainda.'); return; }
+            if (!items.length) { showToast('Nenhuma mensagem para exportar ainda.'); return; }
 
             const dateTag = new Date().toISOString().slice(0, 10);
             const sep = '='.repeat(50);
@@ -1179,8 +1203,78 @@
             showToast('Exportado em TXT.');
         }
 
+        async function exportAsDocx() {
+            markSessionActivity();
+            const items = getHistory();
+            if (!items.length) { showToast('Nenhuma mensagem para exportar ainda.'); return; }
+            if (!window.docx) { showToast('Biblioteca DOCX não carregou. Recarregue a página.'); return; }
+
+            const { Document, Packer, Paragraph, TextRun } = window.docx;
+
+            function stripMd(text) {
+                return text
+                    .replace(/```[\s\S]*?```/g, '[bloco de código]')
+                    .replace(/`([^`]+)`/g, '$1')
+                    .replace(/\*\*(.+?)\*\*/g, '$1')
+                    .replace(/\*(.+?)\*/g, '$1')
+                    .replace(/#{1,6}\s+/g, '')
+                    .replace(/\|[^\n]+\|/g, (m) => m.replace(/\|/g, ' ').trim())
+                    .replace(/[-_*]{3,}/g, '')
+                    .replace(/^\s*[-*+]\s+/gm, '• ')
+                    .trim();
+            }
+
+            const dateTag = new Date().toISOString().slice(0, 10);
+            const dateFormatted = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+            const profileLine = studentProfile.name
+                ? `${studentProfile.name} • ${studentProfile.age} • ${studentProfile.grade}`
+                : 'Perfil não informado';
+
+            const children = [
+                new Paragraph({
+                    children: [new TextRun({ text: 'Histórico — Assistente Pedagógico SEDUC-PE', bold: true, size: 28, font: 'Arial', color: '0f4d41' })],
+                    spacing: { after: 120 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: `${dateFormatted}  |  ${profileLine}  |  ${getActiveModel()}`, size: 18, color: '555555', italics: true, font: 'Arial' })],
+                    spacing: { after: 320 }
+                })
+            ];
+
+            for (const item of items) {
+                const isUser = item.role === 'user';
+                const label = isUser ? `👤 ${studentProfile.name || 'Professor(a)'}` : '🤖 Assistente Pedagógico';
+                children.push(new Paragraph({
+                    children: [new TextRun({ text: label, bold: true, size: 20, color: isUser ? '245f90' : '107763', font: 'Arial' })],
+                    spacing: { before: 260, after: 80 }
+                }));
+                const lines = stripMd(item.text).split('\n').filter(l => l.trim());
+                for (const line of lines) {
+                    children.push(new Paragraph({
+                        children: [new TextRun({ text: line, size: 20, font: 'Arial' })],
+                        spacing: { before: 0, after: 80 }
+                    }));
+                }
+            }
+
+            children.push(new Paragraph({
+                children: [new TextRun({ text: 'EDS Soluções Inteligentes • Assistente Pedagógico SEDUC-PE', size: 16, color: '999999', italics: true, font: 'Arial' })],
+                spacing: { before: 400, after: 0 }
+            }));
+
+            try {
+                const doc = new Document({ sections: [{ children }] });
+                const blob = await Packer.toBlob(doc);
+                triggerDownload(blob, `historico-seduc-pe-${dateTag}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+                showToast('Exportado em DOCX.');
+            } catch (e) {
+                console.error('Erro exportAsDocx:', e);
+                showToast('Erro ao gerar DOCX. Use exportação HTML.');
+            }
+        }
+
         function triggerDownload(content, filename, type) {
-            const blob = new Blob([content], { type });
+            const blob = content instanceof Blob ? content : new Blob([content], { type });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -1695,7 +1789,7 @@
             if (animate && persist) {
                 messageDiv.classList.add('message-enter');
             }
-            messageDiv.innerHTML = renderMessageHtml(text, className);
+            messageDiv.innerHTML = window.DOMPurify ? DOMPurify.sanitize(renderMessageHtml(text, className)) : renderMessageHtml(text, className);
 
             if (className === 'bot-message') {
                 const wrapper = document.createElement('div');
