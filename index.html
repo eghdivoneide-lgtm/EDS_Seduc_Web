@@ -1134,6 +1134,10 @@
                                 <label>Nº de Questões</label>
                                 <input type="number" id="av-nquestoes" value="10" min="3" max="30" style="max-width:90px">
                             </div>
+                            <div class="av-field av-field-full">
+                                <label>Observações / Instruções adicionais <span style="color:#6e89a7;font-weight:400;text-transform:none;letter-spacing:0;font-family:'Trebuchet MS',sans-serif;font-size:10px">(opcional)</span></label>
+                                <textarea id="av-observacoes" rows="3" placeholder="Ex: inclua um texto motivacional no início; use linguagem simples; adapte para alunos com dislexia; numere as alternativas com parênteses; adicione espaço para rascunho..."></textarea>
+                            </div>
                         </div>
                         <div class="av-actions">
                             <button type="button" class="av-gen-btn" onclick="gerarProva()">✨ Gerar Prova</button>
@@ -2481,7 +2485,8 @@
             const conteudo = document.getElementById('av-conteudo').value.trim();
             const tipo = document.getElementById('av-tipo').value;
             const dificuldade = document.getElementById('av-dificuldade').value;
-            const nq = Math.min(30, Math.max(3, parseInt(document.getElementById('av-nquestoes').value) || 10));
+            const nq  = Math.min(30, Math.max(3, parseInt(document.getElementById('av-nquestoes').value) || 10));
+            const obs = document.getElementById('av-observacoes').value.trim();
 
             if (!disciplina || !serie || !conteudo) {
                 showToast('Preencha disciplina, série e conteúdo.');
@@ -2504,9 +2509,11 @@
                 saeb: 'padrão SAEB/ENEM — habilidades BNCC, textos-base, distratores elaborados'
             };
 
+            const obsBlock = obs ? `\nINSTRUÇÕES ADICIONAIS DO PROFESSOR (siga rigorosamente):\n${obs}\n` : '';
+
             const prompt = `Você é o Professor EDS, especialista em elaboração de avaliações pedagógicas conforme a BNCC.
 
-Gere uma avaliação completa com EXATAMENTE ${nq} questões.
+Gere uma avaliação completa com EXATAMENTE ${nq} questões.${obsBlock}
 
 DADOS DA PROVA:
 - Disciplina: ${disciplina}
