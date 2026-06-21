@@ -2136,17 +2136,16 @@
 
             try {
                 if (file.type.startsWith('image/')) {
-                    const dataUrl = await readFileAsDataURL(file);
-                    const base64 = dataUrl.split(',')[1];
+                    const img = await compressImage(file);
                     selectedFile = {
                         kind: 'image',
                         name: file.name,
-                        mimeType: file.type,
-                        data: base64
+                        mimeType: img.mimeType,
+                        data: img.data
                     };
                     setPreview(`
                         <div class="file-chip">Imagem pronta para envio: <b>${escapeHtml(file.name)}</b></div>
-                        <img src="${dataUrl}" alt="Prévia" style="max-width:220px;margin-top:8px;border-radius:12px;border:2px solid #ffd600;" />
+                        <img src="${img.previewUrl}" alt="Prévia" style="max-width:220px;margin-top:8px;border-radius:12px;border:2px solid #ffd600;" />
                     `);
                     return;
                 }
@@ -2205,6 +2204,52 @@
                 reader.onerror = reject;
                 reader.readAsDataURL(file);
             });
+        }
+
+        // Redimensiona e recomprime a imagem antes do envio, iterando até o base64
+        // ficar com folga abaixo do limite de payload do servidor (100k chars).
+        // Fotos de celular (vários MB) viram dezenas de KB sem perder a legibilidade
+        // necessária para correção de provas manuscritas.
+        async function compressImage(file, targetChars = 90_000) {
+            const dataUrl = await readFileAsDataURL(file);
+            try {
+                const img = await new Promise((resolve, reject) => {
+                    const image = new Image();
+                    image.onload = () => resolve(image);
+                    image.onerror = reject;
+                    image.src = dataUrl;
+                });
+                // Tentativas progressivamente mais agressivas até caber no orçamento.
+                const attempts = [
+                    { maxDim: 1600, quality: 0.72 },
+                    { maxDim: 1280, quality: 0.68 },
+                    { maxDim: 1024, quality: 0.62 },
+                    { maxDim: 800,  quality: 0.55 }
+                ];
+                let last = null;
+                for (const { maxDim, quality } of attempts) {
+                    let { width, height } = img;
+                    if (Math.max(width, height) > maxDim) {
+                        const scale = maxDim / Math.max(width, height);
+                        width = Math.round(width * scale);
+                        height = Math.round(height * scale);
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const outUrl = canvas.toDataURL('image/jpeg', quality);
+                    last = { mimeType: 'image/jpeg', data: outUrl.split(',')[1], previewUrl: outUrl };
+                    if (last.data.length <= targetChars) break;
+                }
+                return last;
+            } catch (_) {
+                // Se algo falhar na compressão, usa o original como fallback.
+                return { mimeType: file.type, data: dataUrl.split(',')[1], previewUrl: dataUrl };
+            }
         }
 
         async function extractPdfText(arrayBuffer, maxPages) {
@@ -2400,6 +2445,18 @@
         }
 
         function extractGeminiErrorMessage(status, data, fallbackText) {
+            // Códigos de erro do nosso proxy (data.error é uma string) → mensagem amigável.
+            const proxyCode = typeof data?.error === 'string' ? data.error : null;
+            const PROXY_ERRORS = {
+                payload_muito_grande: 'Esta conversa ficou muito longa para ser processada de uma vez. Clique em "Novo chat" para começar um tópico limpo — o conteúdo já gerado continua salvo.',
+                conteudo_ausente: 'Não recebi nenhum conteúdo para processar. Escreva sua demanda e tente novamente.',
+                sem_creditos: 'Seus créditos acabaram. Escolha um plano para continuar gerando materiais.',
+                modelo_invalido: 'O modelo selecionado não está disponível. Tente outro modelo.'
+            };
+            if (proxyCode && PROXY_ERRORS[proxyCode]) {
+                return PROXY_ERRORS[proxyCode];
+            }
+
             const apiMessage = data?.error?.message;
             if (apiMessage) {
                 return apiMessage;
@@ -2491,15 +2548,32 @@
                 }
                 parts.push({ text: userMessageText });
 
+                // Mensagem atual (sempre enviada). O histórico anterior é incluído
+                // até caber no orçamento de caracteres — assim conversas longas
+                // (projetos, sequências didáticas) nunca estouram o limite do servidor.
+                const currentTurn = { role: 'user', parts };
+                const MAX_CONTEXT_CHARS = 80_000; // margem abaixo do limite do servidor (100k)
+                let usedChars = JSON.stringify(currentTurn).length;
+
                 const allHistory = getHistory();
                 const prevHistory = allHistory.slice(0, -1).slice(-20);
-                let histStart = 0;
-                while (histStart < prevHistory.length && prevHistory[histStart].role !== 'user') histStart++;
-                const historyContents = prevHistory.slice(histStart).map(item => ({
-                    role: item.role === 'user' ? 'user' : 'model',
-                    parts: [{ text: item.text }]
-                }));
-                historyContents.push({ role: 'user', parts });
+                const trimmed = [];
+                // Percorre do mais recente para o mais antigo, parando quando o orçamento acaba.
+                for (let i = prevHistory.length - 1; i >= 0; i--) {
+                    const item = prevHistory[i];
+                    const entry = {
+                        role: item.role === 'user' ? 'user' : 'model',
+                        parts: [{ text: item.text }]
+                    };
+                    const cost = JSON.stringify(entry).length + 1;
+                    if (usedChars + cost > MAX_CONTEXT_CHARS) break;
+                    usedChars += cost;
+                    trimmed.unshift(entry);
+                }
+                // O histórico precisa começar com um turno do usuário (exigência do Gemini).
+                while (trimmed.length && trimmed[0].role !== 'user') trimmed.shift();
+
+                const historyContents = [...trimmed, currentTurn];
 
                 const response = await callAIProxy(modelName, historyContents, {
                     system_instruction: { parts: [{ text: systemWithProfile }] }
@@ -2666,9 +2740,9 @@
             const clearBtn = document.getElementById('av-clear-file-btn');
             try {
                 if (file.type.startsWith('image/')) {
-                    const dataUrl = await readFileAsDataURL(file);
-                    _avFile = { kind: 'image', name: file.name, mimeType: file.type, data: dataUrl.split(',')[1] };
-                    if (preview) preview.innerHTML = `<div class="file-chip">📷 ${escapeHtml(file.name)}</div><img src="${dataUrl}" style="max-width:200px;margin-top:6px;border-radius:8px;border:1px solid rgba(95,199,197,0.3);display:block">`;
+                    const img = await compressImage(file);
+                    _avFile = { kind: 'image', name: file.name, mimeType: img.mimeType, data: img.data };
+                    if (preview) preview.innerHTML = `<div class="file-chip">📷 ${escapeHtml(file.name)}</div><img src="${img.previewUrl}" style="max-width:200px;margin-top:6px;border-radius:8px;border:1px solid rgba(95,199,197,0.3);display:block">`;
                 } else if (file.type === 'application/pdf') {
                     const text = await extractPdfText(await file.arrayBuffer(), 6);
                     _avFile = { kind: 'text', name: file.name, content: text };
