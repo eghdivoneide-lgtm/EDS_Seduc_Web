@@ -801,32 +801,45 @@
         .av-hist-btn:hover { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.5); color: #f1cc75; filter: none; }
         .av-hist-btn.danger:hover { background: rgba(240,80,80,0.1); border-color: rgba(240,80,80,0.4); color: #f0a0a0; filter: none; }
 
-        /* cabeçalho opcional */
-        .av-cab-grid { display: flex; flex-direction: column; gap: 8px; }
+        /* cabeçalho opcional — toggle + campos via :has() */
+        .av-cab-toggle-btn {
+            width: 100%; display: flex; align-items: center; gap: 8px;
+            background: none; border: none; padding: 14px; cursor: pointer;
+            color: #f1cc75; font-size: 12px; letter-spacing: .06em;
+            text-transform: uppercase; font-family: 'DM Mono',Consolas,monospace;
+            font-weight: 700; height: auto; border-radius: 14px;
+        }
+        .av-cab-toggle-btn:hover { background: rgba(201,168,76,0.06); filter: none; }
+        .av-cab-arrow { margin-left: auto; color: #6e89a7; font-size: 11px; transition: transform .2s; flex-shrink: 0; }
+        .av-cab-arrow.open { transform: rotate(90deg); }
+        .av-cab-content { padding: 0 14px 14px; border-top: 1px solid rgba(47,83,127,0.35); }
+        .av-cab-grid { display: flex; flex-direction: column; gap: 9px; margin-top: 12px; }
         .av-cab-row { display: flex; align-items: center; gap: 8px; }
-        .av-cab-row input[type="checkbox"] {
-            width: 15px; height: 15px; flex-shrink: 0;
-            accent-color: #d1a64f; cursor: pointer; margin: 0;
+        .av-cab-check-wrap { display: flex; align-items: center; gap: 7px; flex-shrink: 0; cursor: pointer; }
+        .av-cab-check-wrap input[type="checkbox"] {
+            width: 15px; height: 15px; accent-color: #d1a64f; cursor: pointer; margin: 0; flex-shrink: 0;
         }
         .av-cab-label {
             font-size: 10.5px; color: #a7bfd8; width: 94px; flex-shrink: 0;
-            font-family: 'DM Mono',Consolas,monospace; letter-spacing: .03em; cursor: pointer;
+            font-family: 'DM Mono',Consolas,monospace; letter-spacing: .03em;
         }
+        /* input aparece somente quando o checkbox da mesma linha está marcado */
+        .av-cab-row .av-cab-input { display: none; }
+        .av-cab-row:has(input[type="checkbox"]:checked) .av-cab-input { display: block; flex: 1; }
         .av-cab-input {
-            flex: 1; background: #0f1e32; border: 1px solid #315780;
+            background: #0f1e32; border: 1px solid rgba(201,168,76,0.45);
             border-radius: 6px; color: #eef6ff; font-size: 12.5px;
-            padding: 6px 9px; font-family: 'Trebuchet MS','Segoe UI',sans-serif;
-            transition: opacity .2s, border-color .2s; box-sizing: border-box;
+            padding: 7px 10px; font-family: 'Trebuchet MS','Segoe UI',sans-serif;
+            box-sizing: border-box; width: 100%;
         }
-        .av-cab-input:disabled { opacity: .25; cursor: not-allowed; }
-        .av-cab-input:not(:disabled) { border-color: rgba(201,168,76,0.45); }
+        .av-cab-input:focus { outline: none; border-color: rgba(201,168,76,0.8); }
         .av-cab-separator { margin-top: 4px; padding-top: 9px; border-top: 1px solid rgba(47,83,127,0.4); }
-        .av-cab-check-label { font-size: 11px; color: #a7bfd8; font-family: 'DM Mono',Consolas,monospace; cursor: pointer; }
+        .av-cab-check-label { font-size: 11px; color: #a7bfd8; font-family: 'DM Mono',Consolas,monospace; }
 
         @media (max-width: 600px) {
             .av-form-grid { grid-template-columns: 1fr; }
             .av-field-full { grid-column: 1; }
-            .av-cab-label { width: 80px; font-size: 10px; }
+            .av-cab-label { width: 76px; font-size: 10px; }
         }
     </style>
 </head>
@@ -1011,51 +1024,76 @@
 
                 <!-- GERAR PROVA -->
                 <div id="av-gerar" class="av-subpanel active">
-                    <div class="av-form-card">
-                        <h4>📋 Cabeçalho da Prova <span style="color:#6e89a7;font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;font-family:'Trebuchet MS','Segoe UI',sans-serif">— marque os campos desejados</span></h4>
-                        <div class="av-cab-grid">
-                            <div class="av-cab-row">
-                                <input type="checkbox" id="cab-professor-on" onchange="toggleCabField('cab-professor')">
-                                <label class="av-cab-label" for="cab-professor-on">Professor(a)</label>
-                                <input type="text" id="cab-professor" class="av-cab-input" disabled placeholder="Nome do(a) professor(a)">
-                            </div>
-                            <div class="av-cab-row">
-                                <input type="checkbox" id="cab-escola-on" onchange="toggleCabField('cab-escola')">
-                                <label class="av-cab-label" for="cab-escola-on">Escola</label>
-                                <input type="text" id="cab-escola" class="av-cab-input" disabled placeholder="Nome da escola / instituição">
-                            </div>
-                            <div class="av-cab-row">
-                                <input type="checkbox" id="cab-municipio-on" onchange="toggleCabField('cab-municipio')">
-                                <label class="av-cab-label" for="cab-municipio-on">Município/UF</label>
-                                <input type="text" id="cab-municipio" class="av-cab-input" disabled placeholder="Ex: Recife – PE">
-                            </div>
-                            <div class="av-cab-row">
-                                <input type="checkbox" id="cab-turma-on" onchange="toggleCabField('cab-turma')">
-                                <label class="av-cab-label" for="cab-turma-on">Turma/Turno</label>
-                                <input type="text" id="cab-turma" class="av-cab-input" disabled placeholder="Ex: 7º A – Manhã">
-                            </div>
-                            <div class="av-cab-row">
-                                <input type="checkbox" id="cab-data-on" onchange="toggleCabField('cab-data')">
-                                <label class="av-cab-label" for="cab-data-on">Data</label>
-                                <input type="date" id="cab-data" class="av-cab-input" disabled>
-                            </div>
-                            <div class="av-cab-row">
-                                <input type="checkbox" id="cab-bimestre-on" onchange="toggleCabField('cab-bimestre')">
-                                <label class="av-cab-label" for="cab-bimestre-on">Bimestre</label>
-                                <input type="text" id="cab-bimestre" class="av-cab-input" disabled placeholder="Ex: 2º Bimestre / 1º Trimestre">
-                            </div>
-                            <div class="av-cab-row">
-                                <input type="checkbox" id="cab-valor-on" onchange="toggleCabField('cab-valor')">
-                                <label class="av-cab-label" for="cab-valor-on">Valor</label>
-                                <input type="text" id="cab-valor" class="av-cab-input" disabled placeholder="Ex: 10,0 pontos">
-                            </div>
-                            <div class="av-cab-row av-cab-separator">
-                                <input type="checkbox" id="cab-linha-aluno">
-                                <label class="av-cab-check-label" for="cab-linha-aluno">Incluir linha: Nome do(a) Aluno(a)</label>
-                            </div>
-                            <div class="av-cab-row">
-                                <input type="checkbox" id="cab-linha-nota">
-                                <label class="av-cab-check-label" for="cab-linha-nota">Incluir linha: Nota / Conceito</label>
+                    <div class="av-form-card" style="padding:0;overflow:hidden">
+                        <button type="button" class="av-cab-toggle-btn" onclick="toggleCabecalho()">
+                            📋 Cabeçalho da Prova
+                            <span style="font-size:10px;color:#6e89a7;font-weight:400;letter-spacing:0;text-transform:none;font-family:'Trebuchet MS','Segoe UI',sans-serif">— clique para configurar</span>
+                            <span class="av-cab-arrow" id="av-cab-arrow">▶</span>
+                        </button>
+                        <div id="av-cab-content" class="av-cab-content" style="display:none">
+                            <p class="muted" style="font-size:11px;margin-top:10px">Marque os campos que deseja incluir no cabeçalho. O input abre ao marcar.</p>
+                            <div class="av-cab-grid">
+                                <div class="av-cab-row">
+                                    <label class="av-cab-check-wrap">
+                                        <input type="checkbox" id="cab-professor-on">
+                                        <span class="av-cab-label">Professor(a)</span>
+                                    </label>
+                                    <input type="text" id="cab-professor" class="av-cab-input" placeholder="Nome do(a) professor(a)">
+                                </div>
+                                <div class="av-cab-row">
+                                    <label class="av-cab-check-wrap">
+                                        <input type="checkbox" id="cab-escola-on">
+                                        <span class="av-cab-label">Escola</span>
+                                    </label>
+                                    <input type="text" id="cab-escola" class="av-cab-input" placeholder="Nome da escola / instituição">
+                                </div>
+                                <div class="av-cab-row">
+                                    <label class="av-cab-check-wrap">
+                                        <input type="checkbox" id="cab-municipio-on">
+                                        <span class="av-cab-label">Município/UF</span>
+                                    </label>
+                                    <input type="text" id="cab-municipio" class="av-cab-input" placeholder="Ex: Recife – PE">
+                                </div>
+                                <div class="av-cab-row">
+                                    <label class="av-cab-check-wrap">
+                                        <input type="checkbox" id="cab-turma-on">
+                                        <span class="av-cab-label">Turma/Turno</span>
+                                    </label>
+                                    <input type="text" id="cab-turma" class="av-cab-input" placeholder="Ex: 7º A – Manhã">
+                                </div>
+                                <div class="av-cab-row">
+                                    <label class="av-cab-check-wrap">
+                                        <input type="checkbox" id="cab-data-on">
+                                        <span class="av-cab-label">Data</span>
+                                    </label>
+                                    <input type="date" id="cab-data" class="av-cab-input">
+                                </div>
+                                <div class="av-cab-row">
+                                    <label class="av-cab-check-wrap">
+                                        <input type="checkbox" id="cab-bimestre-on">
+                                        <span class="av-cab-label">Bimestre</span>
+                                    </label>
+                                    <input type="text" id="cab-bimestre" class="av-cab-input" placeholder="Ex: 2º Bimestre / 1º Trimestre">
+                                </div>
+                                <div class="av-cab-row">
+                                    <label class="av-cab-check-wrap">
+                                        <input type="checkbox" id="cab-valor-on">
+                                        <span class="av-cab-label">Valor</span>
+                                    </label>
+                                    <input type="text" id="cab-valor" class="av-cab-input" placeholder="Ex: 10,0 pontos">
+                                </div>
+                                <div class="av-cab-row av-cab-separator">
+                                    <label class="av-cab-check-wrap">
+                                        <input type="checkbox" id="cab-linha-aluno">
+                                        <span class="av-cab-check-label">Incluir linha: Nome do(a) Aluno(a)</span>
+                                    </label>
+                                </div>
+                                <div class="av-cab-row">
+                                    <label class="av-cab-check-wrap">
+                                        <input type="checkbox" id="cab-linha-nota">
+                                        <span class="av-cab-check-label">Incluir linha: Nota / Conceito</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2353,12 +2391,13 @@
         let _avAtual = null;
         let _correcaoAtual = null;
 
-        function toggleCabField(id) {
-            const input = document.getElementById(id);
-            const cb = document.getElementById(id + '-on');
-            if (!input || !cb) return;
-            input.disabled = !cb.checked;
-            if (cb.checked) input.focus();
+        function toggleCabecalho() {
+            const content = document.getElementById('av-cab-content');
+            const arrow   = document.getElementById('av-cab-arrow');
+            if (!content) return;
+            const isOpen = content.style.display !== 'none';
+            content.style.display = isOpen ? 'none' : 'block';
+            if (arrow) arrow.classList.toggle('open', !isOpen);
         }
 
         function buildCabecalho() {
