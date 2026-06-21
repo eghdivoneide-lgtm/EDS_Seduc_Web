@@ -912,7 +912,7 @@
                 </div>
             </div>
             <div class="header-right">
-                <span class="status-chip">PlanejaEdge online</span>
+                <span class="status-chip" id="status-chip">PlanejaEdge online</span>
                 <button type="button" id="profile-trigger" class="profile-trigger" onclick="toggleProfileMenu(event)">👤</button>
                 <div id="profile-menu" class="profile-menu">
                     <div id="credits-display" style="font-size:11px;color:#6e89a7;padding:6px 10px 2px;font-family:'DM Mono',Consolas,monospace"></div>
@@ -1339,32 +1339,46 @@
             markSessionActivity();
             switchPanel('chat');
             await loadUserProfile();
-            showToast('EDS PlanejaEdge iniciado!');
+            const credMsg = _userCreditos !== null ? ` Você tem ${_userCreditos} créditos.` : '';
+            showToast(`Bem-vindo ao EDS PlanejaEdge!${credMsg}`);
         }
 
         async function loadUserProfile() {
             if (!_currentSession) return;
             try {
-                const { data } = await _sb
+                // Tenta SELECT; se não existir perfil, cria com 100 créditos (fallback do trigger)
+                let { data } = await _sb
                     .from('profiles')
                     .select('creditos')
                     .eq('id', _currentSession.user.id)
                     .single();
-                if (data) {
-                    _userCreditos = data.creditos;
-                    updateCreditsDisplay();
+
+                if (!data) {
+                    const { data: inserted } = await _sb
+                        .from('profiles')
+                        .insert({ id: _currentSession.user.id, email: _currentSession.user.email, creditos: 100 })
+                        .select('creditos')
+                        .single();
+                    data = inserted;
                 }
-                const emailEl = document.getElementById('settings-email');
-                const credEl  = document.getElementById('settings-credits');
-                if (emailEl) emailEl.textContent = _currentSession.user.email || '';
-                if (credEl)  credEl.textContent  = `Créditos disponíveis: ${_userCreditos ?? '—'}`;
-            } catch (_) {}
+
+                if (data) { _userCreditos = data.creditos; }
+            } catch (e) { console.warn('loadUserProfile:', e); }
+
+            updateCreditsDisplay();
+            const emailEl = document.getElementById('settings-email');
+            const credEl  = document.getElementById('settings-credits');
+            if (emailEl) emailEl.textContent = _currentSession.user.email || '';
+            if (credEl)  credEl.textContent  = `Créditos disponíveis: ${_userCreditos ?? '—'}`;
         }
 
         function updateCreditsDisplay() {
-            const el   = document.getElementById('credits-display');
+            const v = _userCreditos !== null ? `${_userCreditos} créditos` : '';
+            const chipEl = document.getElementById('status-chip');
+            const menuEl = document.getElementById('credits-display');
             const credEl = document.getElementById('settings-credits');
-            if (el)    el.textContent    = _userCreditos !== null ? `${_userCreditos} créditos` : '';
+            if (chipEl) chipEl.textContent = _userCreditos !== null ? `${_userCreditos} créditos` : 'PlanejaEdge online';
+            if (menuEl) menuEl.textContent = v;
             if (credEl) credEl.textContent = `Créditos disponíveis: ${_userCreditos ?? '—'}`;
         }
 
