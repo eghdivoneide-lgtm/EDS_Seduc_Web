@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eds-planejaedge-v5';
+const CACHE_NAME = 'eds-planejaedge-v6';
 const APP_SHELL = [
   './',
   './index.html',
