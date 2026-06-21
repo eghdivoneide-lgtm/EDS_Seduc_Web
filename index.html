@@ -241,6 +241,9 @@
         .app-tip { position: fixed; z-index: 300; max-width: 260px; transform: translateX(-50%); background: rgba(8,26,22,0.97); color: #eafff9; border: 1px solid rgba(241,204,117,0.5); border-radius: 10px; padding: 9px 12px; font-size: 12.5px; line-height: 1.4; font-family: 'Trebuchet MS','Segoe UI',sans-serif; box-shadow: 0 12px 30px rgba(0,0,0,0.5); pointer-events: none; opacity: 0; transition: opacity .15s ease; }
         .app-tip.show { opacity: 1; }
         .app-tip::before { content: ''; position: absolute; top: -6px; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top: 0; border-bottom-color: rgba(241,204,117,0.5); }
+        .consultant-help { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(241,204,117,0.8); background: #0e2139; cursor: help; padding: 0; margin: 0 8px; flex: 0 0 auto; transition: transform .15s, box-shadow .15s; }
+        .consultant-help:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.45); }
+        .consultant-help img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
     </style>
     <style>
         :root {
@@ -922,7 +925,8 @@
             </div>
             <div class="header-right">
                 <span class="status-chip" id="status-chip">PlanejaEdge online</span>
-                <button type="button" id="profile-trigger" class="profile-trigger" onclick="toggleProfileMenu(event)">👤</button>
+                <button type="button" class="consultant-help" data-tip="Sou o Professor EDS, seu consultor 👋 Passe o mouse sobre cada botão para ver o que ele faz." onclick="this.blur()"><img src="icons/prof-eds.png" alt="Ajuda — Professor EDS"></button>
+                <button type="button" id="profile-trigger" class="profile-trigger" data-tip="Sua conta: perfil, créditos e sair." onclick="toggleProfileMenu(event)">👤</button>
                 <div id="profile-menu" class="profile-menu">
                     <div id="credits-display" style="font-size:11px;color:#6e89a7;padding:6px 10px 2px;font-family:'DM Mono',Consolas,monospace"></div>
                     <button type="button" onclick="editProfileFromMenu()">✏️ Editar perfil</button>
