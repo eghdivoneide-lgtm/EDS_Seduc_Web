@@ -862,6 +862,13 @@
         .auth-btn:disabled { opacity:.5; cursor:default; filter:none; }
         .auth-switch { font-size:12px; color:#6e89a7; margin-top:14px; }
         .auth-switch a { color:#13a385; cursor:pointer; text-decoration:underline; }
+        .discover-card { display:flex; align-items:center; gap:13px; margin-top:20px; padding:12px 14px; border-radius:14px; text-decoration:none; background:linear-gradient(135deg,rgba(19,163,133,0.16),rgba(241,204,117,0.12)); border:1px solid rgba(40,178,147,0.5); transition:transform .18s ease, box-shadow .18s ease, border-color .18s; }
+        .discover-card:hover { transform:translateY(-2px); border-color:#13a385; box-shadow:0 12px 26px rgba(0,0,0,0.4); }
+        .discover-card img { width:54px; height:54px; border-radius:50%; object-fit:cover; object-position:top center; border:2px solid rgba(241,204,117,0.8); flex:0 0 auto; }
+        .discover-text { text-align:left; line-height:1.25; }
+        .discover-text strong { display:block; color:#eafff9; font-size:15px; font-weight:800; }
+        .discover-text span { display:block; color:#7ee8d6; font-size:12px; margin-top:2px; }
+        .discover-text .arrow { color:#f1cc75; }
         .auth-error { font-size:12px; color:#f08080; margin-top:8px; min-height:16px; display:none; }
     </style>
 </head>
@@ -889,6 +896,13 @@
             <div class="auth-switch" style="margin-top:6px">
                 <a onclick="handleForgotPassword()">Esqueci a senha</a>
             </div>
+            <a href="landing.html" class="discover-card">
+                <img src="icons/prof-eds.png" alt="Professor EDS">
+                <div class="discover-text">
+                    <strong>Conheça nosso aplicativo</strong>
+                    <span>Veja tudo que o Professor EDS faz por você <span class="arrow">→</span></span>
+                </div>
+            </a>
         </div>
     </div>
 
@@ -1028,6 +1042,7 @@
                     <h4>Sobre o EDS PlanejaEdge</h4>
                     <p class="muted">Planejador pedagógico com IA para professores e coordenadores. Baseado na BNCC e nas melhores práticas de ensino.</p>
                     <div class="info-chip">EDS Soluções Inteligentes</div>
+                    <a href="landing.html" style="display:inline-block;margin-top:12px;padding:9px 16px;border:1px solid rgba(40,178,147,0.5);border-radius:8px;color:#7ee8d6;text-decoration:none;font-size:13px;font-weight:700">✦ Conheça nosso app</a>
                 </div>
                 <div class="settings-card">
                     <h4>Acoes rapidas</h4>
