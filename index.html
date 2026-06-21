@@ -836,10 +836,27 @@
         .av-cab-separator { margin-top: 4px; padding-top: 9px; border-top: 1px solid rgba(47,83,127,0.4); }
         .av-cab-check-label { font-size: 11px; color: #a7bfd8; font-family: 'DM Mono',Consolas,monospace; }
 
+        /* ===== RELATÓRIO DE TURMA ===== */
+        .rel-aluno-list { display:flex; flex-direction:column; gap:6px; min-height:32px; margin-bottom:10px; }
+        .rel-aluno-item { display:flex; align-items:center; gap:7px; background:#0f1e32; border:1px solid #2d537f; border-radius:8px; padding:7px 10px; flex-wrap:wrap; }
+        .rel-fonte { font-size:9px; padding:2px 7px; border-radius:999px; font-family:'DM Mono',Consolas,monospace; flex-shrink:0; }
+        .rel-fonte.auto   { background:rgba(19,163,133,0.2); color:#7ee8d6; }
+        .rel-fonte.manual { background:rgba(201,168,76,0.15); color:#f1cc75; }
+        .rel-nome { flex:1; font-size:12.5px; color:#eef5fb; min-width:80px; }
+        .rel-nota { font-size:12px; font-family:'DM Mono',Consolas,monospace; color:#f1cc75; font-weight:700; white-space:nowrap; }
+        .rel-obs  { font-size:11px; color:#6e89a7; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .rel-del  { background:none; border:none; color:rgba(240,80,80,0.5); cursor:pointer; font-size:14px; padding:0 2px; height:auto; width:auto; line-height:1; flex-shrink:0; }
+        .rel-del:hover { color:#f08080; filter:none; }
+        .rel-add-row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+        .rel-add-row input { background:#0f1e32; border:1px solid #315780; border-radius:6px; color:#eef6ff; font-size:12.5px; padding:7px 9px; font-family:'Trebuchet MS','Segoe UI',sans-serif; }
+        .rel-add-row input:focus { outline:none; border-color:rgba(201,168,76,0.5); }
+        .rel-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+
         @media (max-width: 600px) {
             .av-form-grid { grid-template-columns: 1fr; }
             .av-field-full { grid-column: 1; }
             .av-cab-label { width: 76px; font-size: 10px; }
+            .rel-obs { display:none; }
         }
     </style>
 </head>
@@ -1020,6 +1037,7 @@
                     <button type="button" class="av-sub active" data-av="gerar" onclick="switchAvTab('gerar')">📝 Gerar Prova</button>
                     <button type="button" class="av-sub" data-av="corrigir" onclick="switchAvTab('corrigir')">✅ Corrigir</button>
                     <button type="button" class="av-sub" data-av="historico" onclick="switchAvTab('historico')">📚 Histórico</button>
+                    <button type="button" class="av-sub" data-av="relatorio" onclick="switchAvTab('relatorio')">📊 Relatório</button>
                 </div>
 
                 <!-- GERAR PROVA -->
@@ -1157,6 +1175,8 @@
                             <div class="av-output-btns">
                                 <button type="button" class="av-action-btn" onclick="exportAvaliacaoHtml('aluno')">📄 HTML Aluno</button>
                                 <button type="button" class="av-action-btn" onclick="exportAvaliacaoHtml('professor')">📋 HTML Gabarito</button>
+                                <button type="button" class="av-action-btn" onclick="exportAvaliacaoDocx('aluno')">📋 DOCX Aluno</button>
+                                <button type="button" class="av-action-btn" onclick="exportAvaliacaoDocx('professor')">📋 DOCX Gabarito</button>
                                 <button type="button" class="av-action-btn" onclick="salvarAvaliacao()">💾 Salvar</button>
                             </div>
                         </div>
@@ -1197,6 +1217,7 @@
                             <span class="av-output-label">Resultado da Correção</span>
                             <div class="av-output-btns">
                                 <button type="button" class="av-action-btn" onclick="exportCorrecaoHtml()">📄 Exportar Correção</button>
+                                <button type="button" class="av-action-btn" onclick="exportCorrecaoDocx()">📋 DOCX Correção</button>
                             </div>
                         </div>
                         <div id="av-correcao-content" class="av-prova-box bbl b"></div>
@@ -1210,6 +1231,37 @@
                         <div id="av-historico-list" class="av-historico-list">
                             <p class="muted" style="text-align:center;padding:20px 0">Nenhuma prova salva ainda. Gere e salve uma prova na aba Gerar Prova.</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- RELATÓRIO DE TURMA -->
+                <div id="av-relatorio" class="av-subpanel">
+                    <div class="av-form-card">
+                        <h4>Alunos Corrigidos</h4>
+                        <p class="muted" style="font-size:11.5px;margin:-4px 0 10px">Correções feitas na aba Corrigir aparecem aqui automaticamente. Adicione manualmente quando precisar.</p>
+                        <div id="rel-aluno-list" class="rel-aluno-list">
+                            <p class="muted" style="text-align:center;padding:12px 0;font-size:12px">Nenhum aluno ainda. Corrija provas ou adicione manualmente abaixo.</p>
+                        </div>
+                        <div class="rel-add-row">
+                            <input type="text" id="rel-nome" placeholder="Nome do aluno" style="flex:2;min-width:120px">
+                            <input type="text" id="rel-nota" placeholder="Nota (ex: 7,5)" style="flex:0 0 90px">
+                            <input type="text" id="rel-obs" placeholder="Observação (opcional)" style="flex:3;min-width:120px">
+                            <button type="button" class="av-action-btn" onclick="addAlunoManual()" style="flex-shrink:0;white-space:nowrap">+ Adicionar</button>
+                        </div>
+                        <div class="rel-actions">
+                            <button type="button" class="av-gen-btn" onclick="gerarRelatorioTurma()">📊 Gerar Relatório da Turma</button>
+                            <button type="button" class="av-action-btn" onclick="limparRelatorio()" style="background:rgba(200,60,60,0.15);border-color:rgba(200,60,60,0.4);color:#f08080">🗑 Limpar lista</button>
+                        </div>
+                    </div>
+                    <div id="rel-output" class="av-output" style="display:none">
+                        <div class="av-output-header">
+                            <span class="av-output-label">Relatório da Turma</span>
+                            <div class="av-output-btns">
+                                <button type="button" class="av-action-btn" onclick="exportRelatorioHtml()">📄 HTML</button>
+                                <button type="button" class="av-action-btn" onclick="exportRelatorioDocx()">📋 DOCX</button>
+                            </div>
+                        </div>
+                        <div id="rel-content" class="av-prova-box bbl b"></div>
                     </div>
                 </div>
             </section>
@@ -2399,10 +2451,28 @@
         // =====================================================================
         // AVALIAÇÕES
         // =====================================================================
-        const AV_STORAGE_KEY = 'seduc_avaliacoes';
-        let _avAtual = null;
+        const AV_STORAGE_KEY  = 'seduc_avaliacoes';
+        const REL_STORAGE_KEY = 'seduc_relatorio_alunos';
+        let _avAtual       = null;
         let _correcaoAtual = null;
-        let _avFile = null;
+        let _avFile        = null;
+        let _relAtual      = null;
+
+        function getRelatorioAlunos() {
+            try { return JSON.parse(localStorage.getItem(REL_STORAGE_KEY) || '[]'); } catch (_) { return []; }
+        }
+        function salvarRelatorioAlunos(list) {
+            localStorage.setItem(REL_STORAGE_KEY, JSON.stringify(list));
+        }
+        function addAlunoRelatorio(nome, nota, obs, fonte) {
+            const list = getRelatorioAlunos();
+            list.push({ nome: nome || 'Aluno', nota: nota || '—', obs: obs || '', fonte: fonte || 'manual', geradoEm: new Date().toISOString() });
+            salvarRelatorioAlunos(list);
+        }
+        function extractNotaFromCorrecao(texto) {
+            const m = texto.match(/\*{0,2}Nota\s+Final\*{0,2}[:\s*]+([0-9]+[,.]?[0-9]*)/i);
+            return m ? m[1].replace('.', ',') : '—';
+        }
 
         async function handleAvFile(event) {
             const file = event.target.files && event.target.files[0];
@@ -2499,6 +2569,7 @@
             document.querySelectorAll('.av-subpanel').forEach(p => p.classList.toggle('active', p.id === `av-${tab}`));
             if (tab === 'historico') renderHistoricoAv();
             if (tab === 'corrigir') preencherSelectProvas();
+            if (tab === 'relatorio') renderRelatorioAlunos();
         }
 
         function getAvaliacoes() {
@@ -2727,6 +2798,10 @@ Seja justo, pedagógico e construtivo. Use a BNCC como referência quando pertin
                 const texto = await parseGeminiResponse(response);
                 _correcaoAtual = { aluno: nomeAluno, texto, geradoEm: new Date().toISOString() };
 
+                // Auto-save to Relatório de Turma
+                const notaExtraida = extractNotaFromCorrecao(texto);
+                addAlunoRelatorio(nomeAluno, notaExtraida, '', 'auto');
+
                 const outputEl  = document.getElementById('av-corrigir-output');
                 const contentEl = document.getElementById('av-correcao-content');
                 const rendered  = (typeof marked !== 'undefined')
@@ -2735,7 +2810,7 @@ Seja justo, pedagógico e construtivo. Use a BNCC como referência quando pertin
                 contentEl.innerHTML = window.DOMPurify ? DOMPurify.sanitize(rendered) : rendered;
                 outputEl.style.display = '';
                 outputEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                showToast('Correção concluída!');
+                showToast(`Correção concluída! Nota: ${notaExtraida} — salvo no Relatório.`);
 
             } catch (err) {
                 showToast('Erro: ' + (err.message || 'tente novamente.'));
@@ -2919,6 +2994,340 @@ ${isProf ? '<div class="gabarito-section">' : ''}${safe}${isProf ? '</div>' : ''
             // BOM UTF-8 (﻿) garante leitura correta no Windows
             triggerDownload('﻿' + html, `prova-${slug}-${dateTag}.html`, 'text/html;charset=utf-8');
             showToast('Exportado em HTML!');
+        }
+
+        // =====================================================================
+        // DOCX — helper: converte markdown em array de Paragraph (docx@7.8.2)
+        // =====================================================================
+        function _mdToDOCXChildren(docxLib, text) {
+            const { Paragraph, TextRun } = docxLib;
+            const children = [];
+
+            function inline(str) {
+                const runs = [];
+                const parts = str.split(/(\*\*[^*]+\*\*)/g);
+                for (const p of parts) {
+                    if (!p) continue;
+                    if (p.startsWith('**') && p.endsWith('**')) {
+                        runs.push(new TextRun({ text: p.slice(2, -2), bold: true, size: 20, font: 'Arial' }));
+                    } else {
+                        runs.push(new TextRun({ text: p, size: 20, font: 'Arial' }));
+                    }
+                }
+                return runs.length ? runs : [new TextRun({ text: str, size: 20, font: 'Arial' })];
+            }
+
+            for (const raw of text.split('\n')) {
+                const line = raw.trimEnd();
+                if (/^# /.test(line)) {
+                    children.push(new Paragraph({
+                        children: [new TextRun({ text: line.replace(/^# /, ''), bold: true, size: 28, color: '103050', font: 'Arial' })],
+                        spacing: { before: 280, after: 100 }
+                    }));
+                } else if (/^## /.test(line)) {
+                    children.push(new Paragraph({
+                        children: [new TextRun({ text: line.replace(/^## /, ''), bold: true, size: 24, color: '103050', font: 'Arial' })],
+                        spacing: { before: 200, after: 80 }
+                    }));
+                } else if (/^#{3,6}\s/.test(line)) {
+                    children.push(new Paragraph({
+                        children: [new TextRun({ text: line.replace(/^#{3,6}\s+/, ''), bold: true, size: 21, color: '1a5c42', font: 'Arial' })],
+                        spacing: { before: 160, after: 60 }
+                    }));
+                } else if (/^\s*[-*]\s/.test(line)) {
+                    children.push(new Paragraph({
+                        children: inline('• ' + line.replace(/^\s*[-*]\s/, '')),
+                        spacing: { after: 60 },
+                        indent: { left: 360 }
+                    }));
+                } else if (/^\|/.test(line)) {
+                    if (/^\|[-| :]+\|/.test(line)) continue;
+                    const cells = line.split('|').filter(c => c.trim()).map(c => c.trim()).join('   ');
+                    children.push(new Paragraph({
+                        children: [new TextRun({ text: cells, size: 19, font: 'Arial' })],
+                        spacing: { after: 40 }
+                    }));
+                } else if (/^---/.test(line)) {
+                    children.push(new Paragraph({
+                        children: [new TextRun({ text: '', size: 20, font: 'Arial' })],
+                        border: { bottom: { color: 'CCCCCC', space: 1, value: 'single', size: 6 } },
+                        spacing: { before: 80, after: 80 }
+                    }));
+                } else if (!line.trim()) {
+                    children.push(new Paragraph({ children: [new TextRun({ text: '', size: 20 })], spacing: { after: 60 } }));
+                } else {
+                    children.push(new Paragraph({ children: inline(line), spacing: { after: 80 } }));
+                }
+            }
+            return children;
+        }
+
+        function _docxBrand(docxLib, titulo, dateTag) {
+            const { Paragraph, TextRun } = docxLib;
+            return [
+                new Paragraph({
+                    children: [new TextRun({ text: titulo, bold: true, size: 28, color: '103050', font: 'Arial' })],
+                    spacing: { after: 60 }
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: `EDS PlanejaEdge · ${dateTag}`, size: 16, color: '888888', italics: true, font: 'Arial' })],
+                    spacing: { after: 220 }
+                })
+            ];
+        }
+
+        // =====================================================================
+        // DOCX — Prova / Gabarito
+        // =====================================================================
+        async function exportAvaliacaoDocx(modo) {
+            if (!_avAtual) { showToast('Nenhuma prova gerada.'); return; }
+            if (!window.docx) { showToast('Biblioteca DOCX não disponível. Recarregue.'); return; }
+            const D = window.docx;
+            const { Document, Packer, Paragraph, TextRun } = D;
+            const isProf   = modo === 'professor';
+            const markdown = (isProf && _avAtual.gabarito) ? `${_avAtual.prova}\n\n${_avAtual.gabarito}` : _avAtual.prova;
+            const titulo   = isProf ? `${_avAtual.titulo} — GABARITO` : _avAtual.titulo;
+            const cab      = _avAtual.cabecalho || null;
+            const dateTag  = new Date().toISOString().slice(0, 10);
+            const children = [..._docxBrand(D, titulo, dateTag)];
+
+            // Cabeçalho institucional
+            if (cab && cab.fields && cab.fields.length) {
+                for (const f of cab.fields) {
+                    children.push(new Paragraph({
+                        children: [
+                            new TextRun({ text: `${f.label}: `, bold: true, size: 20, color: '103050', font: 'Arial' }),
+                            new TextRun({ text: f.value, size: 20, font: 'Arial' })
+                        ],
+                        spacing: { after: 40 }
+                    }));
+                }
+                if (cab.lineAluno) {
+                    children.push(new Paragraph({
+                        children: [new TextRun({ text: 'Nome do(a) Aluno(a): _______________________________________', size: 20, font: 'Arial' })],
+                        spacing: { before: 80, after: 40 }
+                    }));
+                }
+                if (cab.lineNota) {
+                    const val = (cab.fields.find(f => f.label === 'Valor') || {}).value || '10,0';
+                    children.push(new Paragraph({
+                        children: [new TextRun({ text: `Nota: __________ / ${val}`, size: 20, font: 'Arial' })],
+                        spacing: { after: 160 }
+                    }));
+                }
+                children.push(new Paragraph({ children: [new TextRun({ text: '', size: 20 })], spacing: { after: 80 } }));
+            }
+
+            children.push(..._mdToDOCXChildren(D, markdown));
+            children.push(new Paragraph({
+                children: [new TextRun({ text: 'EDS PlanejaEdge — EDS Soluções Inteligentes', size: 16, color: '999999', italics: true, font: 'Arial' })],
+                spacing: { before: 300 }
+            }));
+
+            try {
+                const blob = await Packer.toBlob(new Document({ sections: [{ children }] }));
+                const slug = titulo.replace(/[^\wÀ-ÿ\s-]/g, '').replace(/\s+/g, '-').toLowerCase().slice(0, 60);
+                triggerDownload(blob, `prova-${slug}-${dateTag}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+                showToast('Exportado em DOCX!');
+            } catch (e) { console.error(e); showToast('Erro ao gerar DOCX. Use exportação HTML.'); }
+        }
+
+        // =====================================================================
+        // DOCX — Correção
+        // =====================================================================
+        async function exportCorrecaoDocx() {
+            if (!_correcaoAtual) { showToast('Nenhuma correção gerada.'); return; }
+            if (!window.docx) { showToast('Biblioteca DOCX não disponível.'); return; }
+            const D = window.docx;
+            const { Document, Packer, Paragraph, TextRun } = D;
+            const dateTag  = new Date().toISOString().slice(0, 10);
+            const titulo   = `Correção — ${_correcaoAtual.aluno || 'Aluno'}`;
+            const children = [
+                ..._docxBrand(D, titulo, dateTag),
+                ..._mdToDOCXChildren(D, _correcaoAtual.texto),
+                new Paragraph({
+                    children: [new TextRun({ text: 'EDS PlanejaEdge — EDS Soluções Inteligentes', size: 16, color: '999999', italics: true, font: 'Arial' })],
+                    spacing: { before: 300 }
+                })
+            ];
+            try {
+                const blob = await Packer.toBlob(new Document({ sections: [{ children }] }));
+                const slug = (_correcaoAtual.aluno || 'correcao').replace(/\s+/g, '-').toLowerCase();
+                triggerDownload(blob, `correcao-${slug}-${dateTag}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+                showToast('Correção exportada em DOCX!');
+            } catch (e) { console.error(e); showToast('Erro ao gerar DOCX.'); }
+        }
+
+        // =====================================================================
+        // RELATÓRIO DE TURMA
+        // =====================================================================
+        function renderRelatorioAlunos() {
+            const list = getRelatorioAlunos();
+            const el   = document.getElementById('rel-aluno-list');
+            if (!el) return;
+            if (!list.length) {
+                el.innerHTML = '<p class="muted" style="text-align:center;padding:12px 0;font-size:12px">Nenhum aluno ainda. Corrija provas ou adicione manualmente abaixo.</p>';
+                return;
+            }
+            el.innerHTML = list.map((a, i) => `
+                <div class="rel-aluno-item">
+                    <span class="rel-fonte ${a.fonte === 'auto' ? 'auto' : 'manual'}">${a.fonte === 'auto' ? 'auto' : 'manual'}</span>
+                    <span class="rel-nome">${escapeHtml(a.nome)}</span>
+                    <span class="rel-nota">${escapeHtml(a.nota)}</span>
+                    ${a.obs ? `<span class="rel-obs">${escapeHtml(a.obs)}</span>` : ''}
+                    <button type="button" class="rel-del" onclick="removerAlunoRelatorio(${i})" title="Remover">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function addAlunoManual() {
+            const nome = (document.getElementById('rel-nome') || {}).value.trim();
+            const nota = (document.getElementById('rel-nota') || {}).value.trim();
+            const obs  = (document.getElementById('rel-obs')  || {}).value.trim();
+            if (!nome) { showToast('Informe o nome do aluno.'); return; }
+            addAlunoRelatorio(nome, nota || '—', obs, 'manual');
+            document.getElementById('rel-nome').value = '';
+            document.getElementById('rel-nota').value = '';
+            document.getElementById('rel-obs').value  = '';
+            renderRelatorioAlunos();
+            showToast('Aluno adicionado!');
+        }
+
+        function removerAlunoRelatorio(idx) {
+            const list = getRelatorioAlunos();
+            list.splice(idx, 1);
+            salvarRelatorioAlunos(list);
+            renderRelatorioAlunos();
+        }
+
+        function limparRelatorio() {
+            if (!confirm('Limpar toda a lista de alunos do Relatório de Turma?')) return;
+            salvarRelatorioAlunos([]);
+            renderRelatorioAlunos();
+            const out = document.getElementById('rel-output');
+            if (out) out.style.display = 'none';
+            showToast('Lista limpa.');
+        }
+
+        async function gerarRelatorioTurma() {
+            const list = getRelatorioAlunos();
+            if (!list.length) { showToast('Adicione pelo menos um aluno ao relatório.'); return; }
+            const apiKey = getApiKey();
+            if (!apiKey) { showToast('Configure a chave Gemini nas Configurações.'); return; }
+
+            const btn = document.querySelector('[onclick="gerarRelatorioTurma()"]');
+            if (btn) { btn.disabled = true; btn.textContent = 'Gerando relatório...'; }
+            const outputEl  = document.getElementById('rel-output');
+            const contentEl = document.getElementById('rel-content');
+            if (outputEl) outputEl.style.display = 'none';
+
+            const alunosTexto = list.map((a, i) =>
+                `${i + 1}. ${a.nome} | Nota: ${a.nota}${a.obs ? ` | Obs: ${a.obs}` : ''}`
+            ).join('\n');
+
+            const notas = list.map(a => parseFloat(a.nota.replace(',', '.'))).filter(n => !isNaN(n));
+            const mediaStr = notas.length ? (notas.reduce((s, n) => s + n, 0) / notas.length).toFixed(1).replace('.', ',') : '—';
+            const hoje = new Date().toLocaleDateString('pt-BR');
+
+            const prompt = `Você é o Professor EDS, especialista em análise de desempenho escolar. Com base nos dados abaixo, gere um RELATÓRIO DE TURMA completo para o professor.
+
+TOTAL DE ALUNOS: ${list.length}  |  MÉDIA DA TURMA: ${mediaStr} / 10,0
+DATA: ${hoje}
+
+DADOS DOS ALUNOS:
+${alunosTexto}
+
+FORMATO OBRIGATÓRIO (siga exatamente):
+
+# Relatório de Turma
+
+## 1. Visão Geral
+
+| Aluno | Nota | Nível |
+|-------|------|-------|
+[uma linha por aluno: Insuficiente (0–4,9) / Básico (5–6,9) / Adequado (7–8,4) / Avançado (8,5–10)]
+
+**Média da turma:** ${mediaStr} / 10,0  |  **Total:** ${list.length} aluno(s)
+
+## 2. Distribuição por Nível
+
+| Nível | Nº Alunos | % da Turma |
+|-------|-----------|-----------|
+| Insuficiente (0–4,9) | X | X% |
+| Básico (5–6,9) | X | X% |
+| Adequado (7–8,4) | X | X% |
+| Avançado (8,5–10) | X | X% |
+
+## 3. Análise das Observações
+[Analise as observações individuais. Identifique padrões de erro e dificuldades comuns. Se não houver observações, baseie-se nas notas.]
+
+## 4. Grupos de Intervenção Pedagógica
+
+### Grupo 1 — Atenção Prioritária (Insuficiente e Básico)
+[Alunos + estratégias de intervenção específicas]
+
+### Grupo 2 — Consolidação (Adequado)
+[Alunos + estratégias para consolidar conhecimentos]
+
+### Grupo 3 — Aprofundamento (Avançado)
+[Alunos + atividades de enriquecimento]
+
+## 5. Recomendações Pedagógicas
+[5 a 6 ações concretas que o professor pode adotar nas próximas aulas]
+
+---
+*Relatório gerado pelo EDS PlanejaEdge em ${hoje}*
+
+REGRA CRÍTICA: Comece DIRETAMENTE com "# Relatório de Turma". Nenhum texto antes do título.`;
+
+            try {
+                const response = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(getActiveModel())}:generateContent?key=${apiKey}`,
+                    { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }) }
+                );
+                const texto = await parseGeminiResponse(response);
+                const h1Idx = texto.search(/^#{1,2}\s/m);
+                _relAtual = { texto: h1Idx > 0 ? texto.slice(h1Idx).trim() : texto, geradoEm: new Date().toISOString() };
+
+                const rendered = (typeof marked !== 'undefined')
+                    ? marked.parse(_relAtual.texto, { breaks: true, gfm: true })
+                    : _relAtual.texto.replace(/\n/g, '<br>');
+                contentEl.innerHTML = window.DOMPurify ? DOMPurify.sanitize(rendered) : rendered;
+                outputEl.style.display = '';
+                outputEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                showToast('Relatório de Turma gerado!');
+            } catch (err) {
+                showToast('Erro: ' + (err.message || 'tente novamente.'));
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = '📊 Gerar Relatório da Turma'; }
+            }
+        }
+
+        function exportRelatorioHtml() {
+            if (!_relAtual) { showToast('Gere o relatório primeiro.'); return; }
+            _exportAvalHtml('Relatório de Turma', _relAtual.texto, false, null);
+        }
+
+        async function exportRelatorioDocx() {
+            if (!_relAtual) { showToast('Gere o relatório primeiro.'); return; }
+            if (!window.docx) { showToast('Biblioteca DOCX não disponível.'); return; }
+            const D = window.docx;
+            const { Document, Packer, Paragraph, TextRun } = D;
+            const dateTag  = new Date().toISOString().slice(0, 10);
+            const children = [
+                ..._docxBrand(D, 'Relatório de Turma', dateTag),
+                ..._mdToDOCXChildren(D, _relAtual.texto),
+                new Paragraph({
+                    children: [new TextRun({ text: 'EDS PlanejaEdge — EDS Soluções Inteligentes', size: 16, color: '999999', italics: true, font: 'Arial' })],
+                    spacing: { before: 300 }
+                })
+            ];
+            try {
+                const blob = await Packer.toBlob(new Document({ sections: [{ children }] }));
+                triggerDownload(blob, `relatorio-turma-${dateTag}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+                showToast('Relatório exportado em DOCX!');
+            } catch (e) { console.error(e); showToast('Erro ao gerar DOCX do relatório.'); }
         }
     </script>
 </body>
