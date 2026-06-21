@@ -190,19 +190,11 @@
         .bot-wrapper { display: flex; align-items: flex-start; gap: 14px; align-self: flex-start; max-width: 92%; }
         .avatar-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; }
         .avatar-video-wrap { width: 140px; height: 140px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(209,166,79,0.7); box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 5px rgba(209,166,79,0.13); flex-shrink: 0; transition: box-shadow .3s, border-color .3s; }
-        .avatar-video-wrap.speaking-active { border-color: #13a385; animation: avatar-glow 1.2s ease-in-out infinite; }
-        @keyframes avatar-glow { 0%,100% { box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 5px rgba(19,163,133,0.25); } 50% { box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 9px rgba(19,163,133,0.45), 0 0 32px rgba(19,163,133,0.22); } }
         .avatar-video { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
         .avatar-name { font-family: 'DM Mono',Consolas,monospace; font-size: 10px; color: #f1cc75; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; text-align: center; }
         .bot-msg-col { display: flex; flex-direction: column; gap: 5px; max-width: 100%; min-width: 0; }
         .bot-wrapper .message.bot-message { align-self: auto; max-width: 100%; position: relative; }
         .bot-wrapper .message.bot-message::before { content: ''; position: absolute; left: -9px; top: 28px; border: 9px solid transparent; border-right: 9px solid #18375a; border-left: 0; }
-        .tts-bar { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
-        .tts-btn { background: rgba(19,163,133,0.14); border: 1px solid rgba(19,163,133,0.35); border-radius: 20px; padding: 4px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; color: #7ee8d6; font-size: 12px; font-family: 'DM Mono',Consolas,monospace; letter-spacing: .04em; transition: background .2s, color .2s, border-color .2s; white-space: nowrap; }
-        .tts-btn:hover { background: rgba(19,163,133,0.3); color: #e9fff9; border-color: rgba(19,163,133,0.65); }
-        .tts-btn.speaking { background: rgba(19,163,133,0.35); color: #fff; border-color: #13a385; animation: tts-pulse 1.1s ease-in-out infinite; }
-        @keyframes tts-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(19,163,133,0.35); } 55% { box-shadow: 0 0 0 6px rgba(19,163,133,0); } }
-        .tts-icon { font-size: 14px; }
         @media (max-width: 600px) { .avatar-video-wrap { width: 80px; height: 80px; } .bot-wrapper { gap: 10px; } }
         #input-container { padding: 14px 16px 18px; background-color: #0d1c20; border-top: 1px solid rgba(22,199,154,0.25); display: flex; flex-direction: column; gap: 10px; }
         .action-toolbar { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -617,8 +609,6 @@
             color: rgba(126,232,214,0.5); font-size: 12px; padding: 0 2px;
             transition: color .15s; width: auto; height: auto; line-height: 1;
         }
-        .tts-mini:hover { color: #7ee8d6; filter: none; }
-        .tts-mini.speaking { color: #13a385; animation: tts-pulse 1.1s ease-in-out infinite; }
         .typing-r { display: flex; align-items: flex-end; gap: 8px; }
         .typing {
             background: linear-gradient(180deg,#18375a,#132b45);
@@ -947,7 +937,6 @@
                             <div>👋 Olá! Eu sou o <strong>Professor EDS</strong>, seu assistente pedagógico SEDUC-PE da EDS Soluções Inteligentes.<br>Estou aqui para apoiar você com planejamento pedagógico, BNCC, inclusão, avaliações e sequências didáticas.<br><strong>Preencha seu perfil acima — nome, etapa e necessidade principal — para eu personalizar minhas orientações.</strong></div>
                             <div class="mt">
                                 <span>Professor EDS · agora</span>
-                                <button class="tts-mini" title="Ouvir" onclick="speakText('Olá! Eu sou o Professor EDS, seu assistente pedagógico SEDUC-PE da EDS Soluções Inteligentes. Estou aqui para apoiar você com planejamento pedagógico, BNCC, inclusão, avaliações e sequências didáticas. Preencha seu perfil para que eu possa personalizar minhas orientações.', this, null)">🔊</button>
                             </div>
                         </div>
                     </div>
@@ -1037,10 +1026,6 @@
                     <h4>Sobre o EDS PlanejaEdge</h4>
                     <p class="muted">Planejador pedagógico com IA para professores e coordenadores. Baseado na BNCC e nas melhores práticas de ensino.</p>
                     <div class="info-chip">EDS Soluções Inteligentes</div>
-                </div>
-                <div class="settings-card">
-                    <h4>🔊 Voz Neural</h4>
-                    <p class="muted">A leitura em voz alta usa a síntese de voz do seu navegador (pt-BR). Clique em 🔊 em qualquer resposta para ouvir.</p>
                 </div>
                 <div class="settings-card">
                     <h4>Acoes rapidas</h4>
@@ -2342,59 +2327,6 @@
             }
         }
 
-        let _ttsActiveBtn = null;
-        let _ttsActiveVw = null;
-        let _ttsUtter = null;
-
-        function _ttsReset(btn, videoWrap) {
-            if (btn) { btn.classList.remove('speaking'); btn.textContent = '🔊'; }
-            if (videoWrap) videoWrap.classList.remove('speaking-active');
-            _ttsActiveBtn = null; _ttsActiveVw = null; _ttsUtter = null;
-        }
-
-        function speakText(text, btn, videoWrap) {
-            if (_ttsActiveBtn === btn && speechSynthesis.speaking) {
-                speechSynthesis.cancel();
-                _ttsReset(btn, videoWrap);
-                return;
-            }
-            speechSynthesis.cancel();
-            _ttsReset(_ttsActiveBtn, _ttsActiveVw);
-
-            if (!('speechSynthesis' in window)) {
-                showToast('Seu navegador não suporta leitura em voz alta.');
-                return;
-            }
-
-            const clean = text
-                .replace(/```[\s\S]*?```/g, 'bloco de código.')
-                .replace(/`[^`]+`/g, '')
-                .replace(/\*\*(.*?)\*\*/g, '$1')
-                .replace(/\*(.*?)\*/g, '$1')
-                .replace(/#{1,6}\s*/g, '')
-                .replace(/\|[^\n]+\|/g, '')
-                .replace(/[-_*]{3,}/g, '')
-                .replace(/\n{2,}/g, '. ')
-                .replace(/\n/g, ' ')
-                .trim();
-
-            btn.classList.add('speaking');
-            btn.textContent = '⏹';
-            if (videoWrap) videoWrap.classList.add('speaking-active');
-            _ttsActiveBtn = btn;
-            _ttsActiveVw = videoWrap;
-
-            const utter = new SpeechSynthesisUtterance(clean);
-            utter.lang = 'pt-BR';
-            utter.rate = 1.05;
-            const voices = speechSynthesis.getVoices();
-            const ptVoice = voices.find(v => v.lang.startsWith('pt-BR') || v.lang.startsWith('pt_BR'));
-            if (ptVoice) utter.voice = ptVoice;
-            utter.onend  = () => _ttsReset(btn, videoWrap);
-            utter.onerror = () => _ttsReset(btn, videoWrap);
-            _ttsUtter = utter;
-            speechSynthesis.speak(utter);
-        }
 
         function now() {
             return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -2455,14 +2387,6 @@
             ts.textContent = isBot ? `Professor EDS · ${now()}` : now();
             mt.appendChild(ts);
 
-            if (isBot) {
-                const ttsBtn = document.createElement('button');
-                ttsBtn.className = 'tts-mini';
-                ttsBtn.title = 'Ouvir resposta';
-                ttsBtn.textContent = '🔊';
-                ttsBtn.onclick = () => speakText(text, ttsBtn, null);
-                mt.appendChild(ttsBtn);
-            }
             bbl.appendChild(mt);
             row.appendChild(bbl);
             chatContainer.appendChild(row);
