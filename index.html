@@ -887,8 +887,8 @@
             <div class="header-title">
                 <img class="header-logo" src="icons/eds-symbols/eds-brand-app-icon.svg" alt="EDS">
                 <div class="header-title-text">
-                    <strong id="header-teacher-name">Professor EDS — SEDUC-PE</strong>
-                    <span>EDS PlanejaEdge · SEDUC-PE</span>
+                    <strong id="header-teacher-name">EDS PlanejaEdge</strong>
+                    <span>Planejador pedagógico com IA</span>
                 </div>
             </div>
             <div class="header-right">
@@ -1406,13 +1406,12 @@
                 summary.classList.remove('visible');
                 summary.innerHTML = '';
                 if (trigger) trigger.textContent = '👤';
-                if (headerName) headerName.textContent = 'Professor EDS — SEDUC-PE';
+                if (trigger) trigger.textContent = '👤';
                 return;
             }
 
             const initial = studentProfile.name.charAt(0).toUpperCase();
             if (trigger) trigger.textContent = initial;
-            if (headerName) headerName.textContent = `${studentProfile.name} — SEDUC-PE`;
             summary.innerHTML = `<b>${escapeHtml(studentProfile.name)}</b> • ${escapeHtml(studentProfile.age)} • ${escapeHtml(studentProfile.grade)}`;
             summary.classList.add('visible');
         }
