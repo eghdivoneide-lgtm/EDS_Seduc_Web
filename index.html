@@ -1439,7 +1439,7 @@
                 if (!data) {
                     const { data: inserted } = await _sb
                         .from('profiles')
-                        .insert({ id: _currentSession.user.id, email: _currentSession.user.email, creditos: 30 })
+                        .insert({ id: _currentSession.user.id, email: _currentSession.user.email, creditos: 100 })
                         .select('creditos, is_admin')
                         .single();
                     data = inserted;

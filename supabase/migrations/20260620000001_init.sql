@@ -7,7 +7,7 @@
 CREATE TABLE IF NOT EXISTS public.profiles (
     id          UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
     email       TEXT,
-    creditos    INTEGER NOT NULL DEFAULT 30,
+    creditos    INTEGER NOT NULL DEFAULT 100,
     created_at  TIMESTAMPTZ DEFAULT NOW(),
     updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
@@ -29,7 +29,7 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
     INSERT INTO public.profiles (id, email, creditos)
-    VALUES (NEW.id, NEW.email, 30)
+    VALUES (NEW.id, NEW.email, 100)
     ON CONFLICT (id) DO NOTHING;
     RETURN NEW;
 END;
