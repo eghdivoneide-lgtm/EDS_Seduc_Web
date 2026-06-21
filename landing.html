@@ -97,6 +97,22 @@
         .qa[open] summary::after { transform: rotate(45deg); }
         .qa .a { padding: 0 22px 20px; color: var(--t200); font-size: 1rem; }
 
+        /* PLANOS */
+        .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; }
+        .plan { position: relative; display: flex; flex-direction: column; background: linear-gradient(180deg, rgba(16,48,41,0.82), rgba(11,35,30,0.92)); border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px; }
+        .plan.featured { border-color: rgba(241,204,117,0.7); box-shadow: 0 18px 44px rgba(0,0,0,0.4); }
+        .plan-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: linear-gradient(90deg, var(--gold), var(--gold-2)); color: #1a1505; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: .04em; padding: 5px 13px; border-radius: 999px; white-space: nowrap; }
+        .plan-name { font-family: 'Syne'; font-weight: 800; font-size: 1.3rem; }
+        .plan-price { font-family: 'Syne'; font-weight: 800; font-size: 2.1rem; margin: 6px 0 2px; }
+        .plan-price span { font-size: .9rem; font-weight: 400; color: var(--muted); }
+        .plan-credits { color: var(--teal); font-family: 'DM Mono', monospace; font-size: 13px; margin-bottom: 16px; }
+        .plan-perks { list-style: none; margin: 0 0 22px; padding: 0; flex: 1; }
+        .plan-perks li { color: var(--t200); font-size: .96rem; padding: 7px 0 7px 24px; position: relative; }
+        .plan-perks li::before { content: '✓'; color: var(--teal); position: absolute; left: 2px; font-weight: 800; }
+        .btn-plan { width: 100%; }
+        .plans-note { text-align: center; color: var(--muted); font-size: .96rem; margin: 26px auto 0; max-width: 620px; }
+        .plans-note a { color: var(--teal); text-decoration: underline; }
+
         /* CTA BAND */
         .cta-band { text-align: center; background: linear-gradient(180deg, rgba(209,166,79,0.12), rgba(11,35,30,0.55)); border: 1px solid rgba(209,166,79,0.3); border-radius: 28px; padding: 56px 28px; }
         .cta-band h2 { font-size: clamp(1.9rem, 4vw, 2.8rem); margin: 0 0 12px; letter-spacing: -.5px; }
@@ -127,7 +143,7 @@
 
         @media (max-width: 880px) {
             .nav-links { display: none; }
-            .prob-grid, .cards, .steps { grid-template-columns: 1fr; }
+            .prob-grid, .cards, .steps, .plans { grid-template-columns: 1fr; }
             .hero h1 { max-width: none; }
             .assistant { right: 12px; }
             .ava-figure { height: 150px; }
@@ -144,6 +160,7 @@
                 <a href="#problema">O problema</a>
                 <a href="#recursos">O que faz</a>
                 <a href="#como">Como funciona</a>
+                <a href="#planos">Planos</a>
                 <a href="#duvidas">Dúvidas</a>
             </nav>
             <a class="btn btn-gold" href="index.html?signup=1">Criar conta</a>
@@ -212,6 +229,54 @@
                     <div class="step"><h3>Peça ao Professor EDS</h3><p>Descreva sua demanda — plano, prova ou relatório — e receba o resultado em segundos.</p></div>
                     <div class="step"><h3>Exporte e use</h3><p>Ajuste, baixe em DOCX/HTML e leve direto para a sala de aula ou coordenação.</p></div>
                 </div>
+            </div>
+        </section>
+
+        <!-- PLANOS -->
+        <section class="block" id="planos">
+            <div class="wrap">
+                <div class="sec-head">
+                    <div class="kicker">Planos</div>
+                    <h2>Escolha o seu e comece hoje</h2>
+                    <p>Assinatura mensal com créditos que renovam automaticamente. Cancele quando quiser.</p>
+                </div>
+                <div class="plans">
+                    <div class="plan">
+                        <div class="plan-name">Starter</div>
+                        <div class="plan-price">R$&nbsp;49,99<span>/mês</span></div>
+                        <div class="plan-credits">200 créditos / mês</div>
+                        <ul class="plan-perks">
+                            <li>Assistente pedagógico com IA</li>
+                            <li>Provas, correção e relatórios</li>
+                            <li>Exportação em DOCX e HTML</li>
+                        </ul>
+                        <a class="btn btn-ghost btn-plan" href="https://pay.kiwify.com.br/starter" target="_blank" rel="noopener">Assinar Starter</a>
+                    </div>
+                    <div class="plan featured">
+                        <div class="plan-badge">⭐ Mais popular</div>
+                        <div class="plan-name">Profissional</div>
+                        <div class="plan-price">R$&nbsp;99,99<span>/mês</span></div>
+                        <div class="plan-credits">500 créditos / mês</div>
+                        <ul class="plan-perks">
+                            <li>Tudo do Starter</li>
+                            <li>Mais que o dobro de créditos</li>
+                            <li>Ideal para uso semanal intenso</li>
+                        </ul>
+                        <a class="btn btn-gold btn-plan" href="https://pay.kiwify.com.br/profissional" target="_blank" rel="noopener">Assinar Profissional</a>
+                    </div>
+                    <div class="plan">
+                        <div class="plan-name">Premium</div>
+                        <div class="plan-price">R$&nbsp;149,99<span>/mês</span></div>
+                        <div class="plan-credits">1.200 créditos / mês</div>
+                        <ul class="plan-perks">
+                            <li>Tudo do Profissional</li>
+                            <li>Volume alto de créditos</li>
+                            <li>Para coordenação e equipes</li>
+                        </ul>
+                        <a class="btn btn-ghost btn-plan" href="https://pay.kiwify.com.br/premium" target="_blank" rel="noopener">Assinar Premium</a>
+                    </div>
+                </div>
+                <p class="plans-note">💡 Use o <strong>mesmo e-mail</strong> da sua conta no app — os créditos caem automaticamente após o pagamento. Já tem conta? <a href="index.html">Entrar</a></p>
             </div>
         </section>
 
