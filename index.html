@@ -236,6 +236,25 @@
             .model-select { min-width: 126px; font-size: 13px; }
             .send-btn { min-width: 68px; padding: 10px 10px; }
         }
+
+        /* AJUDA CONTEXTUAL */
+        .help-trigger { width: 40px; height: 40px; border-radius: 999px; overflow: hidden; border: 2px solid rgba(241,204,117,0.7); background: #0e2139; cursor: pointer; padding: 0; flex: 0 0 auto; margin-right: 8px; transition: transform .15s, box-shadow .15s; }
+        .help-trigger:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
+        .help-trigger img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+        .help-overlay { position: fixed; inset: 0; z-index: 200; display: none; align-items: flex-end; justify-content: center; background: rgba(2,10,8,0.6); backdrop-filter: blur(2px); }
+        .help-overlay.open { display: flex; animation: help-fade .2s ease; }
+        @keyframes help-fade { from { opacity: 0; } to { opacity: 1; } }
+        .help-sheet { position: relative; width: 100%; max-width: 760px; background: linear-gradient(180deg, #0e2c25, #0b231e); border: 1px solid rgba(34,176,144,0.4); border-bottom: none; border-radius: 24px 24px 0 0; padding: 30px 24px 22px; box-shadow: 0 -22px 60px rgba(0,0,0,0.55); animation: help-up .3s cubic-bezier(.2,.85,.25,1); }
+        @keyframes help-up { from { transform: translateY(50px); opacity: .3; } to { transform: none; opacity: 1; } }
+        .help-ava { position: absolute; top: -32px; right: 24px; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; border: 2.5px solid rgba(241,204,117,0.85); box-shadow: 0 8px 22px rgba(0,0,0,0.5); background: #0e2139; }
+        .help-ava img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+        .help-sheet h3 { margin: 0 0 12px; font-size: 1.3rem; color: #eafff9; display: flex; align-items: center; gap: 9px; padding-right: 60px; }
+        .help-intro { color: #c7efe3; margin: 0 0 16px; font-size: 1.02rem; line-height: 1.5; }
+        .help-sheet ul { list-style: none; margin: 0 0 22px; padding: 0; }
+        .help-sheet li { color: #bfe6da; font-size: .98rem; line-height: 1.45; padding: 9px 0 9px 22px; position: relative; border-top: 1px solid rgba(34,176,144,0.16); }
+        .help-sheet li::before { content: '▪'; color: #13a385; position: absolute; left: 3px; top: 9px; }
+        .help-ok { width: 100%; background: linear-gradient(135deg, #f1cc75, #d1a64f); color: #1a1505; border: none; border-radius: 12px; padding: 15px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: 'Syne','Trebuchet MS',sans-serif; transition: filter .15s; }
+        .help-ok:hover { filter: brightness(1.06); }
     </style>
     <style>
         :root {
@@ -917,6 +936,7 @@
             </div>
             <div class="header-right">
                 <span class="status-chip" id="status-chip">PlanejaEdge online</span>
+                <button type="button" class="help-trigger" title="O que esta aba faz?" onclick="showHelp()"><img src="icons/prof-eds.png" alt="Ajuda"></button>
                 <button type="button" id="profile-trigger" class="profile-trigger" onclick="toggleProfileMenu(event)">👤</button>
                 <div id="profile-menu" class="profile-menu">
                     <div id="credits-display" style="font-size:11px;color:#6e89a7;padding:6px 10px 2px;font-family:'DM Mono',Consolas,monospace"></div>
@@ -3416,6 +3436,83 @@ REGRA CRÍTICA: Comece DIRETAMENTE com "# Relatório de Turma". Nenhum texto ant
                 showToast('Relatório exportado em DOCX!');
             } catch (e) { console.error(e); showToast('Erro ao gerar DOCX do relatório.'); }
         }
+    </script>
+
+    <!-- AJUDA CONTEXTUAL -->
+    <div class="help-overlay" id="help-overlay" onclick="if(event.target===this)closeHelp()">
+        <div class="help-sheet">
+            <div class="help-ava"><img src="icons/prof-eds.png" alt="Professor EDS"></div>
+            <h3><span id="help-icon">ℹ️</span> <span id="help-title">Sobre</span></h3>
+            <p class="help-intro" id="help-intro"></p>
+            <ul id="help-bullets"></ul>
+            <button type="button" class="help-ok" onclick="closeHelp()">Entendi 👍</button>
+        </div>
+    </div>
+
+    <script>
+        const HELP = {
+            chat: {
+                icon: '💬', title: 'Assistente',
+                intro: 'Converse com o Professor EDS para planejar e tirar dúvidas — ele responde com base na BNCC e nas boas práticas de ensino.',
+                bullets: [
+                    'Peça em linguagem natural (ex.: "plano de aula sobre frações para o 6º ano").',
+                    'Anexe imagem ou PDF para o Professor EDS analisar.',
+                    'Use a aba <b>Atalhos</b> para começar com prompts prontos.',
+                    'Exporte a conversa em <b>HTML, TXT ou DOCX</b> nas Configurações.'
+                ]
+            },
+            avaliacao: {
+                icon: '📝', title: 'Avaliações',
+                intro: 'Gere provas, corrija e acompanhe o histórico — tudo alinhado à BNCC.',
+                bullets: [
+                    '<b>Gerar Prova:</b> defina disciplina, série, conteúdo, tipo e dificuldade (do básico ao padrão SAEB/ENEM).',
+                    '<b>Corrigir:</b> envie as respostas e receba correção com feedback estruturado.',
+                    '<b>Histórico:</b> reabra provas salvas e exporte em DOCX ou HTML.'
+                ]
+            },
+            quick: {
+                icon: '⚡', title: 'Atalhos',
+                intro: 'Prompts pedagógicos prontos para usar com um toque.',
+                bullets: [
+                    'Toque em um atalho para preenchê-lo automaticamente no Assistente.',
+                    'Edite o texto antes de enviar, se quiser ajustar.',
+                    'Ótimo ponto de partida para planos de aula e avaliações.'
+                ]
+            },
+            settings: {
+                icon: '⚙️', title: 'Config pro',
+                intro: 'Sua conta, créditos e preferências em um só lugar.',
+                bullets: [
+                    'Veja seu e-mail e os <b>créditos disponíveis</b>.',
+                    'Edite seu perfil pedagógico para respostas personalizadas.',
+                    'Exporte materiais (HTML, TXT, DOCX) e limpe a conversa.',
+                    'Reveja a apresentação em <b>"Conheça nosso aplicativo"</b>.'
+                ]
+            },
+            admin: {
+                icon: '🛠', title: 'Admin',
+                intro: 'Gestão de professores e créditos (acesso restrito).',
+                bullets: [
+                    'Liste os professores cadastrados e seus créditos.',
+                    'Adicione créditos a um professor sem precisar de SQL.'
+                ]
+            }
+        };
+
+        function showHelp(key) {
+            const active = document.querySelector('.tab-btn.active');
+            const k = key || (active && active.dataset.panel) || 'chat';
+            const h = HELP[k] || HELP.chat;
+            document.getElementById('help-icon').textContent = h.icon;
+            document.getElementById('help-title').textContent = 'Sobre: ' + h.title;
+            document.getElementById('help-intro').textContent = h.intro;
+            document.getElementById('help-bullets').innerHTML = h.bullets.map(b => '<li>' + b + '</li>').join('');
+            document.getElementById('help-overlay').classList.add('open');
+        }
+        function closeHelp() {
+            document.getElementById('help-overlay').classList.remove('open');
+        }
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeHelp(); });
     </script>
 </body>
 </html>
