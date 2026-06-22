@@ -39,7 +39,9 @@ const ALLOWED_MODELS = new Set([
     'gemini-1.5-pro',
 ])
 
-const MAX_PAYLOAD_CHARS = 100_000
+// Limite alto: PDFs (planos, provas) viram base64 grande. 12M chars (~9MB de
+// arquivo) comporta uploads reais e ainda barra abuso.
+const MAX_PAYLOAD_CHARS = 12_000_000
 
 Deno.serve(async (req) => {
     const CORS = corsHeaders(req)
