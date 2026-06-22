@@ -1,0 +1,45 @@
+name: Backup diário dos bancos EDS
+
+# Roda todo dia às 06:00 UTC (03:00 BRT) e também sob demanda (botão "Run workflow").
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar pg_dump 17 (compatível com o Postgres do Supabase)
+        run: |
+          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+
+      - name: Backup PlanejaEdge (esquema + dados, criptografado)
+        env:
+          DB_URL: ${{ secrets.DB_URL_PLANEJAEDGE }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" \
+            | gzip \
+            | openssl enc -aes-256-cbc -pbkdf2 -salt -pass pass:"$PASS" \
+            -out "planejaedge-$(date +%F).sql.gz.enc"
+
+      - name: Backup LicitaEdge (esquema + dados, criptografado)
+        env:
+          DB_URL: ${{ secrets.DB_URL_LICITAEDGE }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" \
+            | gzip \
+            | openssl enc -aes-256-cbc -pbkdf2 -salt -pass pass:"$PASS" \
+            -out "licitaedge-$(date +%F).sql.gz.enc"
+
+      - name: Guardar os backups (download disponível por 30 dias)
+        uses: actions/upload-artifact@v4
+        with:
+          name: eds-backup-${{ github.run_number }}
+          path: '*.enc'
+          retention-days: 30
