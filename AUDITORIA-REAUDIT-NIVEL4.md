@@ -75,3 +75,18 @@ PWA estático (`index.html`) em Netlify + **Supabase** (Auth, Postgres+RLS, 2 Ed
 - **Sprint 2:** DR/backup testado, quotas de custo, observabilidade de saldo.
 
 — _Reauditoria independente · Padrão de Excelência EDS · EDS Soluções Inteligentes_
+
+---
+
+# 🔁 CICLO 2 — Reauditoria Nível 4 (2026-06-27)
+
+| Achado | Disposição | Prova dinâmica (ao vivo) |
+|---|---|---|
+| **PE-01** DRIFT do webhook | ✅ **Resolvido** | `kiwify-webhook` valida `KIWIFY_WEBHOOK_TOKEN` **no repo** (`master:functions/kiwify-webhook/index.ts:40-46`) · POST sem token → **401 `nao_autorizado`** |
+| **B5** auto-crédito (RLS) | ✅ **Corrigido + versionado + provado** | migration `…_harden_profiles_rls_b5.sql` · PATCH anon `creditos` → **`42501 permission denied for table profiles` (401)** |
+| Testes de negócio (PE-03) | ⏳ **Pendência assumida** (já há CI de sintaxe + backup) | — |
+
+**Nota revista:** Arquitetura **9,5** · Seg **9,0** · Lóg.Negócio **9,0** · MVP **9,0** · SaaS **8,0** · Front **8,0** · LGPD **7,5** · Qualidade/Testes **6,5**.
+**Nota global Ciclo 2 = 8,4/10** (era 8,1).
+
+**Veredito Ciclo 2: 🟢 APTO (ressalva PE-01 removida).** Drift fechado — o repo voltou a ser a fonte da verdade do webhook que move dinheiro, e a proteção está **provada ao vivo**. Nenhum 🔴; todas as dimensões ≥ 6; núcleo financeiro (webhook assinado + débito atômico + B5) provado. Acima do piso do benchmark EDS Visual (8,3). Resta apenas a frente de testes de negócio (Sprint 1).
