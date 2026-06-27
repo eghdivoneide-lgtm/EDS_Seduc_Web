@@ -937,7 +937,7 @@
 
     <!-- AUTH MODAL — visível até login -->
     <div id="auth-modal" class="auth-modal">
-        <div class="auth-card">
+        <div class="auth-card" id="auth-card">
             <img class="auth-logo" src="icons/eds-symbols/eds-brand-app-icon.svg" alt="EDS PlanejaEdge">
             <div class="auth-title">EDS PlanejaEdge</div>
             <div class="auth-sub" id="auth-sub-text">Planejador pedagógico com IA</div>
@@ -965,6 +965,21 @@
                     <span>Veja tudo que o Professor EDS faz por você <span class="arrow">→</span></span>
                 </div>
             </a>
+        </div>
+
+        <!-- CARD RECUPERAR SENHA (pedir o link) -->
+        <div class="auth-card" id="recover-card" style="display:none">
+            <img class="auth-logo" src="icons/eds-symbols/eds-brand-app-icon.svg" alt="EDS PlanejaEdge">
+            <div class="auth-title">Recuperar senha</div>
+            <div class="auth-sub">Informe seu e-mail para receber o link de redefinição</div>
+            <input type="email" id="recover-email" class="auth-input" placeholder="E-mail" autocomplete="email"
+                   onkeydown="if(event.key==='Enter') sendRecoverLink()">
+            <div id="recover-msg" class="auth-error" style="display:none"></div>
+            <button type="button" id="recover-btn" class="auth-btn" onclick="sendRecoverLink()">Enviar link de redefinição</button>
+            <div class="auth-switch" style="margin-top:10px">
+                <a onclick="backToLogin()">← Voltar ao login</a>
+            </div>
+            <div class="auth-switch" style="margin-top:6px;font-size:11px;color:#6e89a7">🔒 Login seguro · Supabase</div>
         </div>
     </div>
 
@@ -1521,6 +1536,8 @@
             clearInterval(_adminRefreshTimer);
             document.getElementById('auth-modal').style.display = 'flex';
             document.getElementById('chat-section').style.display = 'none';
+            const ac = document.getElementById('auth-card'); if (ac) ac.style.display = '';
+            const rc = document.getElementById('recover-card'); if (rc) rc.style.display = 'none';
         }
 
         async function handleAuth() {
@@ -1571,14 +1588,34 @@
             if (el('auth-error')) el('auth-error').style.display = 'none';
         }
 
-        async function handleForgotPassword() {
+        function handleForgotPassword() {
             const email = (document.getElementById('auth-email') || {}).value.trim();
-            if (!email) { showAuthError('Informe seu e-mail acima primeiro.'); return; }
+            document.getElementById('recover-email').value = email || '';
+            document.getElementById('recover-msg').style.display = 'none';
+            document.getElementById('auth-card').style.display = 'none';
+            document.getElementById('recover-card').style.display = '';
+        }
+
+        function backToLogin() {
+            document.getElementById('recover-card').style.display = 'none';
+            document.getElementById('auth-card').style.display = '';
+        }
+
+        async function sendRecoverLink() {
+            const email = (document.getElementById('recover-email') || {}).value.trim();
+            const msg = document.getElementById('recover-msg');
+            const btn = document.getElementById('recover-btn');
+            msg.style.display = 'none';
+            if (!email) { msg.style.display='block'; msg.style.color='#f08080'; msg.textContent='Informe seu e-mail.'; return; }
+            if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
             const { error } = await _sb.auth.resetPasswordForEmail(email, {
                 redirectTo: window.location.origin + window.location.pathname
             });
-            if (error) { showAuthError(translateSbError(error.message)); return; }
-            showAuthError('Link de redefinição enviado! Verifique seu e-mail.', '#7ee8d6');
+            if (btn) { btn.disabled = false; btn.textContent = 'Enviar link de redefinição'; }
+            msg.style.display = 'block';
+            if (error) { msg.style.color = '#f08080'; msg.textContent = translateSbError(error.message); return; }
+            msg.style.color = '#7ee8d6';
+            msg.textContent = '✅ Link enviado! Verifique seu e-mail (e o spam) e clique no link para redefinir a senha.';
         }
 
         function translateSbError(msg) {
