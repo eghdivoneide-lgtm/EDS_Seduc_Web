@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eds-planejaedge-v22';
+const CACHE_NAME = 'eds-planejaedge-v23';
 const APP_SHELL = [
   './',
   './index.html',
@@ -39,6 +39,9 @@ self.addEventListener('fetch', (event) => {
 
   const url = event.request.url;
   if (url.includes('generativelanguage.googleapis.com')) return;
+  // NUNCA cachear a API do Supabase (perfil/creditos/RPC): cachear servia dados de
+  // conta ANTIGOS, imunes a F5. Sempre rede para dados de conta.
+  if (url.includes('.supabase.co')) return;
 
   const accept = event.request.headers.get('accept') || '';
   const isNavigation = event.request.mode === 'navigate' || accept.includes('text/html');
