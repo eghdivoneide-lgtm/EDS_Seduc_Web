@@ -1853,9 +1853,17 @@
             closeProfileMenu();
         }
 
-        function logoutFromMenu() {
+        async function logoutFromMenu() {
             closeProfileMenu();
-            _sb.auth.signOut();
+            // Isolamento por conta: limpa dados pessoais (perfil do aluno, avaliacoes,
+            // relatorios, historico) deste navegador antes de sair, para nao vazarem
+            // para outra conta no mesmo dispositivo. (LGPD)
+            try {
+                ['seduc_teacher_profile','seduc_monitor_chat_history_v1','seduc_avaliacoes','seduc_relatorio_alunos']
+                    .forEach(function(k){ localStorage.removeItem(k); });
+            } catch (_) {}
+            try { await _sb.auth.signOut(); } catch (_) {}
+            location.reload();
         }
 
         function saveStudentProfile() {
