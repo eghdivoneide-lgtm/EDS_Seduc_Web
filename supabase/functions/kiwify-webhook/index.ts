@@ -41,8 +41,8 @@ Deno.serve(async (req) => {
         const expected = Deno.env.get('KIWIFY_WEBHOOK_TOKEN')
         const got = (new URL(req.url).searchParams.get('token') || body?.webhook_token || '').toString()
         if (!expected || got !== expected) {
+            // Token errado = ruído normal (smoke test diário, bots escaneando a URL). NÃO alerta no Telegram.
             console.warn('[kiwify] webhook REJEITADO: token invalido/ausente')
-            await alertAdmin('🚨 PlanejaEdge — webhook REJEITADO (token inválido/ausente).')
             return new Response(JSON.stringify({ ok: false, erro: 'nao_autorizado' }), { status: 401, headers: { ...CORS, 'Content-Type': 'application/json' } })
         }
 
